@@ -5,6 +5,9 @@ var mountFolder = function (connect, dir) {
     return connect.static(require('path').resolve(dir));
 };
 
+// execution of arbitrary node scripts
+var exec = require('child_process').exec;
+
 // # Globbing
 // for performance reasons we're only matching one level down:
 // 'test/spec/{,*/}*.js'
@@ -20,6 +23,16 @@ module.exports = function (grunt) {
         app: 'app',
         dist: 'dist'
     };
+
+    // Task to compile Hogan templates
+    grunt.registerTask('hogan-compile', function() {
+        var cmd = 'node hogan-compile.js';
+
+        exec(cmd, function(err, stdout, stderr) {
+            if (err) { throw err; }
+            grunt.log.write(stdout);
+        });
+    });
 
     grunt.initConfig({
         yeoman: yeomanConfig,
@@ -41,6 +54,7 @@ module.exports = function (grunt) {
                     '<%= yeoman.app %>/*.html',
                     '{.tmp,<%= yeoman.app %>}/styles/{,*/}*.css',
                     '{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js',
+                    '{.tmp,<%= yeoman.app %>}/templates/{,*/}*.html',
                     '<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}',
                     'test/spec/{,*/}*.js'
                 ],
@@ -48,7 +62,8 @@ module.exports = function (grunt) {
                 // which means any cached files are re-fetched from network if
                 // connected
                 // also add browserify so js is re-compiled on change
-                tasks: ['livereload', 'manifest', 'browserify']
+                // also add template compilation via Hogan
+                tasks: ['livereload', 'manifest', 'browserify', 'hogan-compile']
             }
         },
 
@@ -75,13 +90,13 @@ module.exports = function (grunt) {
                 // change this to '0.0.0.0' to access the server from outside
                 hostname: '0.0.0.0'
             },
-            proxies: [
-                {
-                    context: '/api',
-                    host: 'localhost',
-                    port: 4711
-                }
-            ],
+            // proxies: [
+            //     {
+            //         context: '/api',
+            //         host: 'localhost',
+            //         port: 4711
+            //     }
+            // ],
             livereload: {
                 options: {
                     middleware: function (connect) {
@@ -322,6 +337,7 @@ module.exports = function (grunt) {
             'clean:server',
             'concurrent:server',
             'manifest',
+            'hogan-compile',
             'browserify',
             'livereload-start',
             'connect:livereload',

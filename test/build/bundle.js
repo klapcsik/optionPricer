@@ -3,14 +3,6 @@ var  normal = require('./normal');
 
 module.exports = function(params) {
 	'use strict';
-	// calculate price
-	params = {
-		daysToExpiry: 365,
-		spot: 100,
-		strike: 150,
-		riskFreeRate: 0.05,
-		volatility: 0.5
-	};
 
 	var yearsToExpiry, spot, strike, riskFreeRate, volatility, d1, d2, callValue, putValue;
 	yearsToExpiry = params.daysToExpiry / 365;
@@ -28,7 +20,7 @@ module.exports = function(params) {
 	putValue = normal.normalcdf(-1*d2)*strike*Math.pow(Math.E, -1*riskFreeRate*yearsToExpiry) - normal.normalcdf(-1*d1)*spot;
 	console.log('call value = ' + callValue);
 	console.log('put value = ' + putValue);
-	return {callValue: callValue, putValue: putValue};
+	return {call: callValue, put: putValue};
 };
 },{"./normal":2}],2:[function(require,module,exports){
 // Thanks to http://www.math.ucla.edu/~tom/distributions/normal.html for this code
@@ -65,11 +57,11 @@ exports.normalcdf = function(X){   //HASTINGS.  MAX ERROR = .000001
 				optionValues = calc(params);
 			});
             it('should calculate call price correctly', function () {
-				var callValue = Math.round(optionValues.callValue);
+				var callValue = Math.round(optionValues.call);
 				expect(callValue).to.equal(8);
             });
             it('should calculate put price correctly', function () {
-				var putValue = Math.round(optionValues.putValue);
+				var putValue = Math.round(optionValues.put);
 				expect(putValue).to.equal(51);
             });
 		});

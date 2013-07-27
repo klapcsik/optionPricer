@@ -12,7 +12,6 @@
         <meta name="viewport" content="width=device-width">
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
         <script src="components/jquery/jquery.js"></script>
-        <script src="scripts/vendor/jstat.js"></script>
         
 
     </head>
@@ -20,16 +19,47 @@
         <div class="container">
             <div class="hero-unit">
                 <h1>Option Pricer</h1>
+                <form id='userForm'>
+                  <fieldset>
+                    <div class="form-group">
+                      <label for="daysToExpiry">Days to Expiry</label>
+                      <input type="text" class="form-control" id="daysToExpiry" placeholder="Days" value="365">
+                    </div>
+                    <div class="form-group">
+                      <label for="strike">Strike Price</label>
+                      <input type="text" class="form-control" id="strike" placeholder="Strike" value="150">
+                    </div>
+                    <div class="form-group">
+                      <label for="spot">Underlying Price</label>
+                      <input type="text" class="form-control" id="spot" placeholder="Underlying" value="100">
+                    </div>
+                    <div class="form-group">
+                      <label for="riskFreeRate">Risk free rate</label>
+                      <input type="text" class="form-control" id="riskFreeRate" placeholder="Risk free" value="0.05">
+                    </div>
+                    <div class="form-group">
+                      <label for="volatility">Volatility</label>
+                      <input type="text" class="form-control" id="volatility" placeholder="Volatility" value="0.5">
+                    </div>
+                    <div id="js-form-submit" type="submit" class="btn btn-default">Submit</button>
+                  </fieldset>
+                </form>
+                <div id="optionsValue"></div>
             </div>
         </div>
 
 
         <script>
+        // global app object
+        var PRICER = {};
+
         $(document).ready(function () {
 
             function startWithResources(resources) {
                 try {
                     eval(resources.js);
+                    // Add CSS
+                    $("head").append("<style>" + resources.css + "</style>");
                     PRICER.applicationController.start();
                 } catch (e) {
                     console.log('error evaling javascript' + e);
@@ -55,15 +85,12 @@
                 }
             }
 
-            // global app object
-             var PRICER = PRICER || {};
-
             // make ajax call for resources if online
             // use navigator.onLine === false as reliable for detecting truly offline, but not reliable for detecting online
             if (navigator && navigator.onLine === false) {
                 loadOffline();
             } else {
-                var jqxhr = $.ajax( "http://localhost:4711/api/resources" )
+                var jqxhr = $.ajax( "http://192.168.1.99:4711/api/resources" )
                     .done(function(resources) { loadOnline(resources); })
                     .fail(function() { console.log(jqxhr); loadOffline(); })
             }

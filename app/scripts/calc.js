@@ -2,14 +2,6 @@ var  normal = require('./normal');
 
 module.exports = function(params) {
 	'use strict';
-	// calculate price
-	params = {
-		daysToExpiry: 365,
-		spot: 100,
-		strike: 150,
-		riskFreeRate: 0.05,
-		volatility: 0.5
-	};
 
 	var yearsToExpiry, spot, strike, riskFreeRate, volatility, d1, d2, callValue, putValue;
 	yearsToExpiry = params.daysToExpiry / 365;
@@ -27,5 +19,5 @@ module.exports = function(params) {
 	putValue = normal.normalcdf(-1*d2)*strike*Math.pow(Math.E, -1*riskFreeRate*yearsToExpiry) - normal.normalcdf(-1*d1)*spot;
 	console.log('call value = ' + callValue);
 	console.log('put value = ' + putValue);
-	return {callValue: callValue, putValue: putValue};
+	return {call: callValue, put: putValue};
 };

@@ -15,11 +15,11 @@
 				optionValues = calc(params);
 			});
             it('should calculate call price correctly', function () {
-				var callValue = Math.round(optionValues.callValue);
+				var callValue = Math.round(optionValues.call);
 				expect(callValue).to.equal(8);
             });
             it('should calculate put price correctly', function () {
-				var putValue = Math.round(optionValues.putValue);
+				var putValue = Math.round(optionValues.put);
 				expect(putValue).to.equal(51);
             });
 		});
