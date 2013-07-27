@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en" manifest="manifest.appcache">
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+        <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+        <script src="components/jquery/jquery.js"></script>
+
+    </head>
+    <body>
+        <div class="container">
+            <div class="hero-unit">
+                <h1>Option Pricer</h1>
+            </div>
+        </div>
+
+
+        <script>
+        $(document).ready(function () {
+
+            function startWithResources(resources) {
+                try {
+                    eval(resources.js);
+                    PRICER.applicationController.start();
+                } catch (e) {
+                    console.log('error evaling javascript' + e);
+                }
+            }
+            // eval javascript and css + insert into DOM
+            function loadOnline(resources) {
+                console.log('resources loaded succesfully ' + resources);
+                startWithResources(resources);
+                // store in localStorage for offline usage
+                localStorage.resources = JSON.stringify(resources);
+            }
+
+            // handle offline *or* ajax request failure 
+            function loadOffline() {
+                var resources;
+                if (localStorage && localStorage.resources) {
+                    console.log('using resources from localStorage');
+                    resources = JSON.parse(localStorage.resources);
+                    startWithResources(resources);
+                } else {
+                    console.log('App start failure, no stored resources');
+                }
+            }
+
+            // global app object
+            var PRICER = PRICER || {};
+
+            // make ajax call for resources if online
+            // use navigator.onLine === false as reliable for detecting truly offline, but not reliable for detecting online
+            if (navigator && navigator.onLine === false) {
+                loadOffline();
+            } else {
+                var jqxhr = $.ajax( "http://localhost:4711/api/resources" )
+                    .done(function(resources) { loadOnline(resources); })
+                    .fail(function() { console.log(jqxhr); loadOffline(); })
+            }
+        });
+
+        </script>
+
+</body>
+</html>
