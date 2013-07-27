@@ -1,15 +1,14 @@
-/* globals $, PRICER */
-'use strict';
+/* globals PRICER */
 
+var  calc = require('./calc');
 
 PRICER.applicationController = (function() {
+    'use strict';
     function start() {
-        console.log('Running jQuery %s', $().jquery);
+        calc('test');
     }
 
     return {
         start: start
     };
 }());
-
-
