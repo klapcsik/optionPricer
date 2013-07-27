@@ -12,6 +12,8 @@
         <meta name="viewport" content="width=device-width">
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
         <script src="components/jquery/jquery.js"></script>
+        <script src="scripts/vendor/jstat.js"></script>
+        
 
     </head>
     <body>
@@ -54,7 +56,7 @@
             }
 
             // global app object
-            var PRICER = PRICER || {};
+             var PRICER = PRICER || {};
 
             // make ajax call for resources if online
             // use navigator.onLine === false as reliable for detecting truly offline, but not reliable for detecting online

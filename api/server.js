@@ -65,13 +65,15 @@ app.configure( function() {
     //Get a list of all photos
     app.get( '/api/resources', function( request, response ) {
         var resources = {};
-        fs.readFile('../app/scripts/main.js', 'utf8', function (err,data) {
+        // TODO: Add vendor scrips such as jstat
+        fs.readFile('../app/build/bundle.js', 'utf8', function (err,data) {
             if (err) {
                 console.log('error ' + data);
             } else {
                 compileResources('js', data);
             }
         });
+        // take advantage of the SASS compiled by livereload & compass in dev
         fs.readFile('../.tmp/styles/main.css', 'utf8', function (err,data) {
             if (err) {
                 console.log('error ' + data);

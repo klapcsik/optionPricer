@@ -41,12 +41,14 @@ module.exports = function (grunt) {
                     '<%= yeoman.app %>/*.html',
                     '{.tmp,<%= yeoman.app %>}/styles/{,*/}*.css',
                     '{.tmp,<%= yeoman.app %>}/scripts/{,*/}*.js',
-                    '<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}'
+                    '<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}',
+                    'test/spec/{,*/}*.js'
                 ],
                 // add manifest task as this updates timestamp in manifest file
                 // which means any cached files are re-fetched from network if
                 // connected
-                tasks: ['livereload', 'manifest']
+                // also add browserify so js is re-compiled on change
+                tasks: ['livereload', 'manifest', 'browserify']
             }
         },
 
@@ -55,14 +57,13 @@ module.exports = function (grunt) {
             generate: {
                 options: {
                     basePath: 'app/',
-                    cache: ['components/jquery/jquery.js'],
                     network: ['*'],
                     preferOnline: true,
                     verbose: true,
                     timestamp: true
                 },
                 src: [
-                    'scripts/*.js'
+                    'components/jquery/jquery.js'
                 ],
                 dest: 'app/manifest.appcache'
             }
@@ -186,29 +187,9 @@ module.exports = function (grunt) {
                 }
             }
         },
-        // not used since Uglify task does concat,
-        // but still available if needed
-        /*concat: {
-            dist: {}
-        },*/
-        requirejs: {
-            dist: {
-                // Options: https://github.com/jrburke/r.js/blob/master/build/example.build.js
-                options: {
-                    // `name` and `out` is set by grunt-usemin
-                    baseUrl: 'app/scripts',
-                    optimize: 'none',
-                    // TODO: Figure out how to make sourcemaps work with grunt-usemin
-                    // https://github.com/yeoman/grunt-usemin/issues/30
-                    //generateSourceMaps: true,
-                    // required to support SourceMaps
-                    // http://requirejs.org/docs/errors.html#sourcemapcomments
-                    preserveLicenseComments: false,
-                    useStrict: true,
-                    wrap: true,
-                    //uglify2: {} // https://github.com/mishoo/UglifyJS2
-                }
-            }
+        browserify: {
+            '<%= yeoman.app %>/build/bundle.js': ['<%= yeoman.app %>/scripts/**/*.js'],
+            'test/build/bundle.js': ['test/spec/**/*.js']
         },
         rev: {
             dist: {
@@ -341,6 +322,7 @@ module.exports = function (grunt) {
             'clean:server',
             'concurrent:server',
             'manifest',
+            'browserify',
             'livereload-start',
             'connect:livereload',
             'open',
