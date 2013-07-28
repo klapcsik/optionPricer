@@ -51,7 +51,7 @@ app.configure( function() {
     app.use( app.router );
 
     //Where to serve static content
-    app.use( express.static( path.join( applicationRoot, 'app') ) );
+    app.use('/app', express.static( path.join( applicationRoot, '../' ,'app') ));
 
     //Show all errors in development
     app.use( express.errorHandler({ dumpExceptions: true, showStack: true }));
@@ -66,18 +66,20 @@ app.configure( function() {
     app.get( '/api/resources', function( request, response ) {
         var resources = {js: '', css: ''};
         var jsFilePaths = [
-            '../app/build/bundle.js',
-            '../app/components/hogan.js/web/builds/2.0.0/hogan-2.0.0.js',
-            '../app/build/templates/compiled.js'
+            'build/bundle.js',
+            'components/hogan.js/web/builds/2.0.0/hogan-2.0.0.js',
+            'build/templates/compiled.js'
         ];
-        var cssFilePaths = ['../.tmp/styles/main.css'];
+        var cssFilePaths = ['styles/main.css', '../.tmp/styles/main.css'];
         var resourceCounter = 0;
         var requiredResources = jsFilePaths.length + cssFilePaths.length;
 
         for (var i = 0; i < jsFilePaths.length; i++) {
-            fs.readFile(jsFilePaths[i], 'utf8', function (err,data) {
+            var filePath = path.join( applicationRoot, '../' ,'app', jsFilePaths[i]);
+            console.log(filePath);
+            fs.readFile(filePath, 'utf8', function (err,data) {
                 if (err) {
-                    console.log('error ' + data + jsFilePaths[i]);
+                    console.log('js error ' + data + jsFilePaths[i]);
                 } else {
                     resources.js = resources.js + data;
                 }
@@ -86,9 +88,17 @@ app.configure( function() {
         }
 
         for (var j = 0; j < cssFilePaths.length; j++) {
-            fs.readFile(cssFilePaths[j], 'utf8', function (err,data) {
+            var cssFilePath;
+            // HACK: hack to deal with files being compiled to .tmp in dev but not in prod
+            if (cssFilePaths[0] !== '.') {
+                cssFilePath = path.join( applicationRoot, '../' ,'app', cssFilePaths[j]);
+            } else {
+                cssFilePath = cssFilePaths[j];
+            }
+            console.log(cssFilePath);
+            fs.readFile(cssFilePath, 'utf8', function (err,data) {
                 if (err) {
-                    console.log('error ' + data);
+                    console.log('css error ' + data);
                 } else {
                     resources.css = resources.css + data;
                 }
@@ -109,7 +119,7 @@ app.configure( function() {
 
 
 //Start server
-var port = 4711;
+var port =  process.env.PORT || 4711;
 app.listen( port, function() {
     console.log( 'Express server listening on port %d in %s mode', port, app.settings.env );
 });
