@@ -53,9 +53,6 @@ PRICER.applicationController = (function() {
 		// this.formId = params.formId;
 		// array of values
 		this.values = params.values;
-
-        // TODO add render method to render form initiially from a template
-        // currently this added to DOM before CSS is parsed which looks bad
     }
 
     OptionInputs.prototype.getValues = function() {

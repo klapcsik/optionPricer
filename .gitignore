@@ -1,7 +1,6 @@
 node_modules
-dist
 .tmp
 .sass-cache
 app/components
-app/build/bundle.js
-app/build/templates/compiled.js
+app/build/*
+*.appcache

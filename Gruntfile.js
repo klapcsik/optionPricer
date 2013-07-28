@@ -173,7 +173,7 @@ module.exports = function (grunt) {
                 importPath: 'app/components',
                 relativeAssets: true
             },
-            dist: {},
+            dist: { },
             server: {
                 options: {
                     debugInfo: true
@@ -182,12 +182,17 @@ module.exports = function (grunt) {
         },
         // TODO: minify
         browserify: {
-            dist: {
-                '<%= yeoman.dist %>bundle.js': ['<%= yeoman.app %>/scripts/**/*.js']
-            },
             dev: {
-                '<%= yeoman.app %>/build/bundle.js': ['<%= yeoman.app %>/scripts/**/*.js'],
-                'test/build/bundle.js': ['test/spec/**/*.js']
+                src: ['<%= yeoman.app %>/scripts/**/*.js'],
+                dest: '<%= yeoman.app %>/build/bundle.js'
+            },
+            test: {
+                src: ['test/spec/**/*.js'],
+                dest: 'test/build/bundle.js'
+            },
+            dist: {
+                src: ['<%= yeoman.app %>/scripts/**/*.js'],
+                dest: '<%= yeoman.dist %>/build/bundle.js'
             }
         },
         rev: {
@@ -285,7 +290,7 @@ module.exports = function (grunt) {
                         'components/hogan.js/web/builds/2.0.0/hogan-2.0.0.js',
                         '../package.json',
                         '*.appcache',
-                        '*.html'
+                        '../Procfile'
                     ]
                 }]
             },
@@ -345,13 +350,19 @@ module.exports = function (grunt) {
     grunt.registerTask('test', [
         'clean:server',
         'concurrent:test',
+        'browserify:test',
         'connect:test',
         'mocha'
     ]);
 
     // TODO add back in usemin and rev
+    // compass:dist compiles css and puts into .tmp folder
+    // cssmin takes css in .tmp, minifies and puts into dist/app/styles
     grunt.registerTask('build', [
         'clean:dist',
+        'compass:dist',
+        'cssmin',
+        'htmlmin',
         'manifest',
         'hogan-compile',
         'browserify:dist',
