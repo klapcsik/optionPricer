@@ -24,7 +24,9 @@ module.exports = function (grunt) {
     // configurable paths
     var yeomanConfig = {
         app: 'app',
-        dist: 'dist'
+        dist: 'dist/app',
+        api: 'api',
+        distApi: 'dist/api'
     };
 
     // Task to compile Hogan templates
@@ -178,9 +180,15 @@ module.exports = function (grunt) {
                 }
             }
         },
+        // TODO: minify
         browserify: {
-            '<%= yeoman.app %>/build/bundle.js': ['<%= yeoman.app %>/scripts/**/*.js'],
-            'test/build/bundle.js': ['test/spec/**/*.js']
+            dist: {
+                '<%= yeoman.dist %>bundle.js': ['<%= yeoman.app %>/scripts/**/*.js']
+            },
+            dev: {
+                '<%= yeoman.app %>/build/bundle.js': ['<%= yeoman.app %>/scripts/**/*.js'],
+                'test/build/bundle.js': ['test/spec/**/*.js']
+            }
         },
         rev: {
             dist: {
@@ -270,7 +278,24 @@ module.exports = function (grunt) {
                         '*.{ico,txt}',
                         '.htaccess',
                         'images/{,*/}*.{webp,gif}',
-                        'styles/fonts/*'
+                        'styles/fonts/*',
+                        'build/bundle.js',
+                        'build/templates/compiled.js',
+                        'components/jquery/jquery.js',
+                        'components/hogan.js/web/builds/2.0.0/hogan-2.0.0.js',
+                        '../package.json',
+                        '*.appcache',
+                        '*.html'
+                    ]
+                }]
+            },
+            apiDist: {
+                files: [{
+                    expand: true,
+                    cwd: '<%= yeoman.api %>',
+                    dest: '<%= yeoman.distApi %>',
+                    src: [
+                        'server.js'
                     ]
                 }]
             }
@@ -283,10 +308,7 @@ module.exports = function (grunt) {
                 'compass'
             ],
             dist: [
-                'compass:dist',
-                'imagemin',
-                'svgmin',
-                'htmlmin'
+                'compass:dist'
             ]
         },
         bower: {
@@ -312,7 +334,7 @@ module.exports = function (grunt) {
             'configureProxies',
             'manifest',
             'hogan-compile',
-            'browserify',
+            'browserify:dev',
             'livereload-start',
             'connect:livereload',
             'open',
@@ -327,17 +349,14 @@ module.exports = function (grunt) {
         'mocha'
     ]);
 
+    // TODO add back in usemin and rev
     grunt.registerTask('build', [
         'clean:dist',
-        'useminPrepare',
-        'concurrent:dist',
-        'requirejs',
-        'cssmin',
-        'concat',
-        'uglify',
-        'copy',
-        'rev',
-        'usemin'
+        'manifest',
+        'hogan-compile',
+        'browserify:dist',
+        'copy:dist',
+        'copy:apiDist',
     ]);
 
     grunt.registerTask('default', [
