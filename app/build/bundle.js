@@ -23,7 +23,7 @@ module.exports = function(params) {
 	return {call: callValue, put: putValue};
 };
 },{"./normal":3}],2:[function(require,module,exports){
-/* globals PRICER, $ */
+/* globals PRICER, $, appTemplates */
 
 var  calc = require('./calc');
 
@@ -94,7 +94,8 @@ PRICER.applicationController = (function() {
 
 
     function start() {
-		// add click handlers
+		$('.hero-unit').html(appTemplates.userForm.render());
+        // add click handlers
 		$('#js-form-submit').on('click', function() {
 			calculate();
 		});

@@ -16,4 +16,4 @@ fs.readdirSync(templateDir).forEach(function(templateFile) {
 
 });
 
-fs.writeFile('app/templates/compiled.js', result, 'utf8');
+fs.writeFile('app/build/templates/compiled.js', result, 'utf8');

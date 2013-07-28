@@ -64,30 +64,43 @@ app.configure( function() {
 
     //Get a list of all photos
     app.get( '/api/resources', function( request, response ) {
-        var resources = {};
-        // TODO: Add vendor scrips such as jstat
-        fs.readFile('../app/build/bundle.js', 'utf8', function (err,data) {
-            if (err) {
-                console.log('error ' + data);
-            } else {
-                compileResources('js', data);
-            }
-        });
-        // take advantage of the SASS compiled by livereload & compass in dev
-        fs.readFile('../.tmp/styles/main.css', 'utf8', function (err,data) {
-            if (err) {
-                console.log('error ' + data);
-            } else {
-                compileResources('css', data);
-            }
-        });
+        var resources = {js: '', css: ''};
+        var jsFilePaths = [
+            '../app/build/bundle.js',
+            '../app/components/hogan.js/web/builds/2.0.0/hogan-2.0.0.js',
+            '../app/build/templates/compiled.js'
+        ];
+        var cssFilePaths = ['../.tmp/styles/main.css'];
+        var resourceCounter = 0;
+        var requiredResources = jsFilePaths.length + cssFilePaths.length;
 
-        // need this due to asyn nature of readFile - sure there's a better way
-        // to do this
-        function compileResources(key, resource) {
-            resources[key] = resource;
-            if (resources.js && resources.css) {
-                response.send({js: resources.js, css: resources.css});
+        for (var i = 0; i < jsFilePaths.length; i++) {
+            fs.readFile(jsFilePaths[i], 'utf8', function (err,data) {
+                if (err) {
+                    console.log('error ' + data + jsFilePaths[i]);
+                } else {
+                    resources.js = resources.js + data;
+                }
+                addResources();
+            });
+        }
+
+        for (var j = 0; j < cssFilePaths.length; j++) {
+            fs.readFile(cssFilePaths[j], 'utf8', function (err,data) {
+                if (err) {
+                    console.log('error ' + data);
+                } else {
+                    resources.css = resources.css + data;
+                }
+                addResources();
+            });    
+        }
+
+        function addResources() {
+            resourceCounter = resourceCounter + 1;
+            console.log(resourceCounter + ' out of ' + requiredResources);
+            if (resourceCounter === requiredResources) {
+                response.send(resources);
             }
         }
 

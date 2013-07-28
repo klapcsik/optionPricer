@@ -19,31 +19,7 @@
         <div class="container">
             <div class="hero-unit">
                 <h1>Option Pricer</h1>
-                <form id='userForm'>
-                  <fieldset>
-                    <div class="form-group">
-                      <label for="daysToExpiry">Days to Expiry</label>
-                      <input type="text" class="form-control" id="daysToExpiry" placeholder="Days" value="365">
-                    </div>
-                    <div class="form-group">
-                      <label for="strike">Strike Price</label>
-                      <input type="text" class="form-control" id="strike" placeholder="Strike" value="150">
-                    </div>
-                    <div class="form-group">
-                      <label for="spot">Underlying Price</label>
-                      <input type="text" class="form-control" id="spot" placeholder="Underlying" value="100">
-                    </div>
-                    <div class="form-group">
-                      <label for="riskFreeRate">Risk free rate</label>
-                      <input type="text" class="form-control" id="riskFreeRate" placeholder="Risk free" value="0.05">
-                    </div>
-                    <div class="form-group">
-                      <label for="volatility">Volatility</label>
-                      <input type="text" class="form-control" id="volatility" placeholder="Volatility" value="0.5">
-                    </div>
-                    <div id="js-form-submit" type="submit" class="btn btn-default">Submit</button>
-                  </fieldset>
-                </form>
+                
                 <div id="optionsValue"></div>
             </div>
         </div>
@@ -68,9 +44,10 @@
             // eval javascript and css + insert into DOM
             function loadOnline(resources) {
                 console.log('resources loaded succesfully ' + resources);
+                localStorage.resources = JSON.stringify(resources);
                 startWithResources(resources);
                 // store in localStorage for offline usage
-                localStorage.resources = JSON.stringify(resources);
+                
             }
 
             // handle offline *or* ajax request failure 
