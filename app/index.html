@@ -67,7 +67,7 @@
             if (navigator && navigator.onLine === false) {
                 loadOffline();
             } else {
-                var jqxhr = $.ajax( "http://192.168.1.99:4711/api/resources" )
+                var jqxhr = $.ajax( "/api/resources" )
                     .done(function(resources) { loadOnline(resources); })
                     .fail(function() { console.log(jqxhr); loadOffline(); })
             }
