@@ -66,7 +66,8 @@ PRICER.applicationController = (function() {
 
 
     function start() {
-		$('.hero-unit').html(appTemplates.userForm.render());
+		$('.option-form-container').html(appTemplates.userForm.render());
+        $('.graph-container').html(appTemplates.lineGraph.render());
         // add click handlers
 		$('#js-form-submit').on('click', function() {
 			calculate();

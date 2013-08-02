@@ -2,8 +2,150 @@ $iconSpritePath: "../images/glyphicons-halflings.png";
 $iconWhiteSpritePath: "../images/glyphicons-halflings-white.png";
 
 @import 'sass-bootstrap/lib/bootstrap';
+@import 'sass-bootstrap/lib/responsive';
 
-.hero-unit {
-    margin: 50px auto 0 auto;
-    width: 300px;
+/* mixins, variables, etc. */
+
+$grayMediumLight: #eaeaea;
+
+$smallBoxRadius: 2px;
+$medBoxRadius: 8px;
+$largeBoxRadius: 8px;
+
+
+$wwNavy: #33434e;
+
+
+
+/* universal */
+
+html {
+  overflow-y: scroll;
+}
+
+
+section {
+  overflow: auto;
+}
+
+textarea {
+  resize: vertical;
+}
+
+
+body {
+  padding-top: 90px;
+  padding-left: 0px;
+  padding-right: 0px;
+   @media screen and (max-width: 979px) { 
+    padding-top: 0px;
+   }
+}
+
+
+.center {
+  text-align: center;
+  h1 {
+    margin-bottom: 10px;
+  }
+}
+
+/* typography */
+
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1;
+}
+
+h2 {
+  font-size: 1.7em;
+  letter-spacing: -1px;
+  margin-bottom: 30px;
+  text-align: center;
+  font-weight: normal;
+  color: $grayLight;
+}
+
+p {
+  font-size: 1.1em;
+  line-height: 1.7em;
+}
+
+
+.option-form-container {
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+  color: #8D9092;
+  background-color: #0B1218;
+
+  font-size: 1.1em;
+  line-height: 1.7em;
+
+    h1 {
+      letter-spacing: -2px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+  @media screen and (min-width: 640px) { 
+    padding-top: 40px;
+    padding-bottom: 40px;
+   }
+}
+
+#user-form {
+    input {
+        background-color: #1A1B1B;
+        border-style: solid;
+        border-color: #393736;
+        border-width: 1px;
+    }
+}
+
+.user-form-submit-btn {
+    background-color: #251712;
+    width: 25%;
+    height: 50px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 20px;
+
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #393736;
+}
+
+// user input fields
+.user-form-input-group {
+    padding-bottom: 30px;
+    padding-top: 30px;
+}
+
+
+/* footer */
+
+footer {
+  margin-top: 45px;
+  padding-top: 5px;
+  border-top: 1px solid $grayMediumLight;
+  color: $grayLight;
+  a {
+    color: $gray;
+    &:hover { 
+      color: $grayDarker;
+    }
+  }  
+  small { 
+    float: left; 
+  }
+  ul {
+    float: right;
+    list-style: none;
+    li {
+      float: left;
+      margin-left: 10px;
+    }
+  }
 }
