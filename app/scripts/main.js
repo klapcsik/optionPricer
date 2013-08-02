@@ -1,6 +1,7 @@
 /* globals PRICER, $, appTemplates */
 
 var  calc = require('./calc');
+var  lineGraph = require('./lineGraph');
 
 PRICER.applicationController = (function() {
     'use strict';
@@ -72,6 +73,18 @@ PRICER.applicationController = (function() {
 		$('#js-form-submit').on('click', function() {
 			calculate();
 		});
+
+        var data = {values: [
+            {X: 100, Y: 120},
+            {X: 110, Y: 130},
+            {X: 120, Y: 150},
+            {X: 170, Y: 170},
+        ]};
+        var graphEl = $('#graph');
+        var graph = new lineGraph.Graph(data, graphEl);
+        graph.drawAxis();
+        graph.drawLine();
+        console.log(graph.context);
     }
 
     return {
