@@ -22,7 +22,9 @@ module.exports = function(params) {
 	console.log('put value = ' + putValue);
 	return {call: callValue, put: putValue};
 };
-},{"./normal":3}],2:[function(require,module,exports){
+},{"./normal":4}],2:[function(require,module,exports){
+
+},{}],3:[function(require,module,exports){
 /* globals PRICER, $, appTemplates */
 
 var  calc = require('./calc');
@@ -91,7 +93,8 @@ PRICER.applicationController = (function() {
 
 
     function start() {
-		$('.hero-unit').html(appTemplates.userForm.render());
+		$('.option-form-container').html(appTemplates.userForm.render());
+        $('.graph-container').html(appTemplates.lineGraph.render());
         // add click handlers
 		$('#js-form-submit').on('click', function() {
 			calculate();
@@ -104,7 +107,7 @@ PRICER.applicationController = (function() {
     };
 }());
 
-},{"./calc":1}],3:[function(require,module,exports){
+},{"./calc":1}],4:[function(require,module,exports){
 // Thanks to http://www.math.ucla.edu/~tom/distributions/normal.html for this code
 
 exports.normalcdf = function(X){   //HASTINGS.  MAX ERROR = .000001
@@ -121,7 +124,7 @@ exports.normalcdf = function(X){   //HASTINGS.  MAX ERROR = .000001
 // Prob=normalcdf((Z-M)/SD);
 // Prob=round(100000*Prob)/100000;
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 (function(){/* ===================================================
  * bootstrap-transition.js v2.3.0
  * http://twitter.github.com/bootstrap/javascript.html#transitions
@@ -2391,5 +2394,5 @@ exports.normalcdf = function(X){   //HASTINGS.  MAX ERROR = .000001
 
 }(window.jQuery);
 })()
-},{}]},{},[1,2,3,4])
+},{}]},{},[1,2,3,4,5])
 ;
