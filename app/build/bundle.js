@@ -1,25 +1,70 @@
 ;(function(e,t,n){function i(n,s){if(!t[n]){if(!e[n]){var o=typeof require=="function"&&require;if(!s&&o)return o(n,!0);if(r)return r(n,!0);throw new Error("Cannot find module '"+n+"'")}var u=t[n]={exports:{}};e[n][0].call(u.exports,function(t){var r=e[n][1][t];return i(r?r:t)},u,u.exports)}return t[n].exports}var r=typeof require=="function"&&require;for(var s=0;s<n.length;s++)i(n[s]);return i})({1:[function(require,module,exports){
 var  normal = require('./normal');
 
-module.exports = function(params) {
+module.exports = (function() {
 	'use strict';
 
-	var yearsToExpiry, spot, strike, riskFreeRate, volatility, d1, d2, callValue, putValue;
-	yearsToExpiry = params.daysToExpiry / 365;
-	spot = params.spot;
-	strike = params.strike;  // could deal with absolute value or % of at the money forward
-	riskFreeRate = params.riskFreeRate;  // annualised, compound rate
-	volatility = params.volatility;
+	function blackScholes(params, type) {
+		var yearsToExpiry, spot, strike, riskFreeRate, volatility, d1, d2, rtnValue;
+		yearsToExpiry = params.daysToExpiry / 365;
+		spot = params.spot;
+		strike = params.strike;  // could deal with absolute value or % of at the money forward
+		riskFreeRate = params.riskFreeRate;  // annualised, compound rate
+		volatility = params.volatility;
 
-	// need to modify for divs and repo
-	d1 = (Math.log(spot/strike) + (riskFreeRate + volatility * volatility / 2)*(yearsToExpiry))/(volatility*Math.sqrt(yearsToExpiry));
-	d2 = (Math.log(spot/strike) + (riskFreeRate - volatility * volatility / 2)*(yearsToExpiry))/(volatility*Math.sqrt(yearsToExpiry));
+		// need to modify for divs and repo
+		d1 = (Math.log(spot/strike) + (riskFreeRate + volatility * volatility / 2)*(yearsToExpiry))/(volatility*Math.sqrt(yearsToExpiry));
+		d2 = (Math.log(spot/strike) + (riskFreeRate - volatility * volatility / 2)*(yearsToExpiry))/(volatility*Math.sqrt(yearsToExpiry));
 
-	callValue = normal.normalcdf(d1)*spot - normal.normalcdf(d2)*strike*Math.pow(Math.E, -1 * riskFreeRate * yearsToExpiry);
-	// from put call parity
-	putValue = normal.normalcdf(-1*d2)*strike*Math.pow(Math.E, -1*riskFreeRate*yearsToExpiry) - normal.normalcdf(-1*d1)*spot;
-	return {call: callValue, put: putValue};
-};
+		if (type === 'call') {
+			rtnValue = normal.normalcdf(d1)*spot - normal.normalcdf(d2)*strike*Math.pow(Math.E, -1 * riskFreeRate * yearsToExpiry);
+
+		}
+		if (type === 'put') {
+			rtnValue = normal.normalcdf(-1*d2)*strike*Math.pow(Math.E, -1*riskFreeRate*yearsToExpiry) - normal.normalcdf(-1*d1)*spot;
+		}
+
+		return rtnValue;
+	}
+
+	function calculateValues(params, type, greeks) {
+		// expect greeks to be an array of option greeks to calc
+		var rtnValue = {};
+
+		if (!greeks) {
+			return blackScholes(params, type);
+		}
+
+		if (greeks.indexOf('delta') !== -1) {
+			var deltaX = 1;
+			var deltaY, a, b;
+
+			// Use loop to clone object
+			var copiedParams = {};
+			for(var prop in params) {
+			    if(params.hasOwnProperty(prop)) {
+			        copiedParams[prop] = params[prop];
+		        }
+			}
+
+			copiedParams.spot = copiedParams.spot - deltaX/2;
+			a = blackScholes(copiedParams, type);
+			// need to add entire deltaX as just took off ha
+			copiedParams.spot = copiedParams.spot + deltaX;
+			b = blackScholes(copiedParams, type);
+			deltaY = b - a;
+			rtnValue.delta = deltaY / deltaX;
+
+		}
+
+		return rtnValue;
+	}
+
+	return {
+		calculateValues: calculateValues
+	};
+
+}());
 },{"./normal":4}],2:[function(require,module,exports){
 // Thanks to http://www.worldwidewhat.net/2011/06/draw-a-line-graph-using-html5-canvas/
 // Slight modifications to fit to a more modular OO pattern, and also in some case refactored to 
@@ -96,6 +141,10 @@ module.exports = (function() {
         return max;
     };
 
+    Graph.prototype.clearCanvas = function() {
+        this.context.clearRect ( 0 , 0 , this.canvasSize.x , this.canvasSize.y );
+    };
+
     Graph.prototype.getPixel = function(val, axis) {
         var rtn;
         if (axis === 'x') {
@@ -166,6 +215,9 @@ module.exports = (function() {
 },{}],3:[function(require,module,exports){
 /* globals PRICER, $, appTemplates */
 
+
+// Could query Yahoo APIs for stock data select * from yahoo.finance.quotes where symbol in ("YHOO","AAPL","GOOG","MSFT")
+
 var  calc = require('./calc');
 var  lineGraph = require('./lineGraph');
 
@@ -196,7 +248,9 @@ PRICER.applicationController = (function() {
     };
 
     EquityOption.prototype.calculate = function(variable, low, high, resolution) {
-		var params, optionValues;
+        console.time('Calc range of options and draw graph');
+
+		var params, optionValue, greeks;
 		params = {
 			daysToExpiry: this.daysToExpiry,
 			spot: this.spot,
@@ -204,28 +258,34 @@ PRICER.applicationController = (function() {
 			riskFreeRate: this.riskFreeRate,
 			volatility: this.volatility
 		};
-        var actualSpot = this.spot, callValues = {values: []}, putValues = {};
+        var actualSpot = this.spot, callValues = {values: []}, deltas ={values: []};
 		// Calculate
         if (variable === 'spot') {
             for (var i = low; i < high; i += resolution) {
                 params.spot = i;
-                optionValues = calc(params);
+                optionValue = calc.calculateValues(params, 'call');
 
-                callValues.values.push({x: i, y: optionValues.call * 10});
-                putValues[i] = optionValues.put;
+                callValues.values.push({x: i, y: optionValue});
+                debugger;
+                greeks = calc.calculateValues(params, 'call', ['delta']);
+                deltas.values.push({x:i, y:greeks.delta});
+
             }
         }
-        console.log(callValues);
-        this.spot = actualSpot;
-        this.call = callValues[actualSpot];
-        this.put = putValues[actualSpot];
 
-        var data = callValues;
+        this.spot = actualSpot;
+        params.spot = this.spot;
+        this.call = calc.calculateValues(params, 'call');
+        console.log(deltas);
+
+        var data = deltas;
         var graphEl = $('#graph');
         var graph = new lineGraph.Graph(data, graphEl);
+        graph.clearCanvas();
         graph.drawAxis();
         graph.drawLine();
 
+        console.timeEnd('Calc range of options and draw graph');
 
     };
 
@@ -240,7 +300,7 @@ PRICER.applicationController = (function() {
         // This takes about a 1ms
         var low, high, resolution;
         low = myOption.spot - 50;
-        high = myOption.spot + 50;
+        high = myOption.spot + 150;
         resolution = 1;
 		myOption.calculate('spot', low, high, resolution);
         // I think it would be preferable to use events to call this rather than calling directly
@@ -2566,5 +2626,5 @@ exports.normalcdf = function(X){   //HASTINGS.  MAX ERROR = .000001
 
 }(window.jQuery);
 })()
-},{}]},{},[2,3,4,5,1])
+},{}]},{},[1,2,3,4,5])
 ;
