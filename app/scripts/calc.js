@@ -17,7 +17,5 @@ module.exports = function(params) {
 	callValue = normal.normalcdf(d1)*spot - normal.normalcdf(d2)*strike*Math.pow(Math.E, -1 * riskFreeRate * yearsToExpiry);
 	// from put call parity
 	putValue = normal.normalcdf(-1*d2)*strike*Math.pow(Math.E, -1*riskFreeRate*yearsToExpiry) - normal.normalcdf(-1*d1)*spot;
-	console.log('call value = ' + callValue);
-	console.log('put value = ' + putValue);
 	return {call: callValue, put: putValue};
 };

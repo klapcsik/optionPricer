@@ -5,25 +5,46 @@
 module.exports = (function() {
     'use strict';
 
-    var xPadding = 30;
-    var yPadding = 30;
-    var width = 200;
-    var height = 300;
     var data;
 
     // slightly more generic 
     function Graph(graphData, el) {
+        var ctx;
+
         data = graphData;
         this.el = el;
-        this.width = width;
-        this.height = height;
         this.context = el[0].getContext('2d');
 
-        // Set some drawing properties
-        this.context.lineWidth = 2;
-        this.context.strokeStyle = '#333';
-        this.context.font = 'italic 8pt sans-serif';
-        this.context.textAlign = 'center';
+        this.padding = {};
+        this.padding.x = 30;
+        this.padding.y = 30;
+
+        ctx = this.context;
+        this.canvasSize = {};
+        this.canvasSize.x = ctx.canvas.clientWidth;
+        this.canvasSize.y = ctx.canvas.clientHeight;
+
+        this.graphSize = {};
+        this.graphSize.x = this.canvasSize.x - this.padding.x;
+        this.graphSize.y = this.canvasSize.y - this.padding.y;
+
+        this.max = {};
+        this.max.x = this.getMax('x');
+        this.max.y = this.getMax('y');
+
+        this.pixelsPerUnit = {};
+        this.pixelsPerUnit.x = this.graphSize.x / this.max.x;
+        this.pixelsPerUnit.y = this.graphSize.y / this.max.y;
+
+        this.origin = {};
+        this.origin.x = this.padding.x;
+        this.origin.y = this.graphSize.y;
+
+        // Default drawing properties
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#333';
+        ctx.font = 'italic 8pt sans-serif';
+        ctx.textAlign = 'center';
     }
 
     // specify setter for data so we can keep in sync
@@ -52,59 +73,43 @@ module.exports = (function() {
         return max;
     };
 
-    // maybe max x & y should be properties of the object?
-    Graph.prototype.getDimensions = function() {
-        var x, y;
-        y = this.getMax('Y');
-        x = this.getMax('X');
-        return {x: x, y: y};
-    };
-
-    Graph.prototype.getXPixel = function(val) {
-        var width, dims;
-        dims = this.getDimensions();
-        width = dims.x;
-        var availableGraphWidth = width - xPadding;
-        var pixelsPerUnit = availableGraphWidth / this.getMax('X');
-        return xPadding + (pixelsPerUnit * data.values[val].X);
+    Graph.prototype.getPixel = function(val, axis) {
+        var rtn;
+        if (axis === 'x') {
+            rtn = this.origin.x + (this.pixelsPerUnit.x * val);
+        }
+        if (axis === 'y') {
+            rtn = this.origin.y - (this.pixelsPerUnit.y * val);
+        }
+        return rtn;
     };
  
-    Graph.prototype.getYPixel = function(val) {
-        var height, dims;
-        dims = this.getDimensions();
-        height = dims.y;
-        var availableGraphHeight = height - yPadding;
-        var pixelsPerUnit = availableGraphHeight / this.getMax('Y');
-        return height - yPadding - (pixelsPerUnit * data.values[val].Y);
-    };
 
     Graph.prototype.drawAxis = function() {
-        var width, height, dims, ctx = this.context;
-        dims = this.getDimensions();
-        width = dims.x;
-        height = dims.y;
+        var ctx = this.context;
+
         ctx.beginPath();
-        ctx.moveTo(xPadding, 0);
-        ctx.lineTo(xPadding, height - yPadding);
-        ctx.lineTo(width, height - yPadding);
-        console.log(width);
-        console.log(height - yPadding);
+        ctx.moveTo(this.origin.x, 0);
+        ctx.lineTo(this.origin.x, this.origin.y);
+        ctx.lineTo(this.origin.x + this.graphSize.x, this.origin.y);
         ctx.stroke();
 
-        // axis labels
-        for(var i = 0; i < data.values.length; i++) {
-            // TODO: stop these values crashing into each other
-            // Offset 20px from x or y axis
-            ctx.fillText(data.values[i].X, this.getXPixel(i), height - yPadding + 20);
-            ctx.fillText(data.values[i].Y, xPadding - 20, this.getYPixel(i));
-        }
-
-        // y axis labels
+        // y axis labels - one every X pixels
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
-         
-        for(var j = 0; j < data.values.length; j++) {
-            ctx.fillText(j, xPadding - 10, this.getYPixel(j));
+
+        var spacing = {};
+        var labelSpacing = 30;   // in pixels
+        spacing.y = Math.round(labelSpacing / this.pixelsPerUnit.y);
+        spacing.x = Math.round(labelSpacing / this.pixelsPerUnit.x);
+
+        for(var i = 0; i < this.max.y; i += spacing.y) {
+            ctx.fillText(i, this.origin.x, this.getPixel(i, 'y'));
+        }
+
+        ctx.textAlign = 'center';
+        for(var j = 0; j < this.max.x; j += spacing.x) {
+            ctx.fillText(j, this.getPixel(j, 'x'), (this.graphSize.y + 10));
         }
     };
 
@@ -112,10 +117,10 @@ module.exports = (function() {
         var ctx = this.context;
         ctx.strokeStyle = '#f00';
         ctx.beginPath();
-        ctx.moveTo(this.getXPixel(0), this.getYPixel(0));
+        ctx.moveTo(this.getPixel(data.values[0].x, 'x'), this.getPixel(data.values[0].y),'y');
          
         for(var i = 0; i < data.values.length; i++) {
-            ctx.lineTo(this.getXPixel(i), this.getYPixel(i));
+            ctx.lineTo(this.getPixel(data.values[i].x, 'x'), this.getPixel(data.values[i].y, 'y'));
         }
         ctx.stroke();
 
@@ -124,7 +129,7 @@ module.exports = (function() {
  
         for(var j = 0; j < data.values.length; j++) {
             ctx.beginPath();
-            ctx.arc(this.getXPixel(j), this.getYPixel(j), 4, 0, Math.PI * 2, true);
+            ctx.arc(this.getPixel('x', data.values[j].x), this.getPixel('y', data.values[j].y), 4, 0, Math.PI * 2, true);
             ctx.fill();
         }
     };

@@ -7,8 +7,14 @@ PRICER.applicationController = (function() {
     'use strict';
 
 	function EquityOption(params, resultsElement) {
-		this.call = null;
+		// Specific prices at values when calculated
+        this.call = null;
 		this.put = null;
+
+        // Range of values for plotting graph
+        this.callValues = {};
+        this.putValues = {};
+
 		this.el = resultsElement;
 		this.daysToExpiry = params.daysToExpiry;
 		this.spot = params.spot;
@@ -23,7 +29,7 @@ PRICER.applicationController = (function() {
 		this.el.html(template);
     };
 
-    EquityOption.prototype.calculate = function() {
+    EquityOption.prototype.calculate = function(variable, low, high, resolution) {
 		var params, optionValues;
 		params = {
 			daysToExpiry: this.daysToExpiry,
@@ -32,10 +38,29 @@ PRICER.applicationController = (function() {
 			riskFreeRate: this.riskFreeRate,
 			volatility: this.volatility
 		};
+        var actualSpot = this.spot, callValues = {values: []}, putValues = {};
 		// Calculate
-		optionValues = calc(params);
-		this.call = optionValues.call;
-		this.put = optionValues.put;
+        if (variable === 'spot') {
+            for (var i = low; i < high; i += resolution) {
+                params.spot = i;
+                optionValues = calc(params);
+
+                callValues.values.push({x: i, y: optionValues.call * 10});
+                putValues[i] = optionValues.put;
+            }
+        }
+        console.log(callValues);
+        this.spot = actualSpot;
+        this.call = callValues[actualSpot];
+        this.put = putValues[actualSpot];
+
+        var data = callValues;
+        var graphEl = $('#graph');
+        var graph = new lineGraph.Graph(data, graphEl);
+        graph.drawAxis();
+        graph.drawLine();
+
+
     };
 
     function calculate() {
@@ -46,7 +71,13 @@ PRICER.applicationController = (function() {
 
 		var optionValueElement = $('#optionsValue');
 		var myOption = new EquityOption(userForm.values, optionValueElement);
-		myOption.calculate();
+        // This takes about a 1ms
+        var low, high, resolution;
+        low = myOption.spot - 50;
+        high = myOption.spot + 50;
+        resolution = 1;
+		myOption.calculate('spot', low, high, resolution);
+        // I think it would be preferable to use events to call this rather than calling directly
 		myOption.render();
     }
 
@@ -74,17 +105,6 @@ PRICER.applicationController = (function() {
 			calculate();
 		});
 
-        var data = {values: [
-            {X: 100, Y: 120},
-            {X: 110, Y: 130},
-            {X: 120, Y: 150},
-            {X: 170, Y: 170},
-        ]};
-        var graphEl = $('#graph');
-        var graph = new lineGraph.Graph(data, graphEl);
-        graph.drawAxis();
-        graph.drawLine();
-        console.log(graph.context);
     }
 
     return {

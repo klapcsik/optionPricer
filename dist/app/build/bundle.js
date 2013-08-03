@@ -18,8 +18,6 @@ module.exports = function(params) {
 	callValue = normal.normalcdf(d1)*spot - normal.normalcdf(d2)*strike*Math.pow(Math.E, -1 * riskFreeRate * yearsToExpiry);
 	// from put call parity
 	putValue = normal.normalcdf(-1*d2)*strike*Math.pow(Math.E, -1*riskFreeRate*yearsToExpiry) - normal.normalcdf(-1*d1)*spot;
-	console.log('call value = ' + callValue);
-	console.log('put value = ' + putValue);
 	return {call: callValue, put: putValue};
 };
 },{"./normal":4}],2:[function(require,module,exports){
@@ -30,25 +28,46 @@ module.exports = function(params) {
 module.exports = (function() {
     'use strict';
 
-    var xPadding = 30;
-    var yPadding = 30;
-    var width = 200;
-    var height = 300;
     var data;
 
     // slightly more generic 
     function Graph(graphData, el) {
+        var ctx;
+
         data = graphData;
         this.el = el;
-        this.width = width;
-        this.height = height;
         this.context = el[0].getContext('2d');
 
-        // Set some drawing properties
-        this.context.lineWidth = 2;
-        this.context.strokeStyle = '#333';
-        this.context.font = 'italic 8pt sans-serif';
-        this.context.textAlign = 'center';
+        this.padding = {};
+        this.padding.x = 30;
+        this.padding.y = 30;
+
+        ctx = this.context;
+        this.canvasSize = {};
+        this.canvasSize.x = ctx.canvas.clientWidth;
+        this.canvasSize.y = ctx.canvas.clientHeight;
+
+        this.graphSize = {};
+        this.graphSize.x = this.canvasSize.x - this.padding.x;
+        this.graphSize.y = this.canvasSize.y - this.padding.y;
+
+        this.max = {};
+        this.max.x = this.getMax('x');
+        this.max.y = this.getMax('y');
+
+        this.pixelsPerUnit = {};
+        this.pixelsPerUnit.x = this.graphSize.x / this.max.x;
+        this.pixelsPerUnit.y = this.graphSize.y / this.max.y;
+
+        this.origin = {};
+        this.origin.x = this.padding.x;
+        this.origin.y = this.graphSize.y;
+
+        // Default drawing properties
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#333';
+        ctx.font = 'italic 8pt sans-serif';
+        ctx.textAlign = 'center';
     }
 
     // specify setter for data so we can keep in sync
@@ -77,59 +96,43 @@ module.exports = (function() {
         return max;
     };
 
-    // maybe max x & y should be properties of the object?
-    Graph.prototype.getDimensions = function() {
-        var x, y;
-        y = this.getMax('Y');
-        x = this.getMax('X');
-        return {x: x, y: y};
-    };
-
-    Graph.prototype.getXPixel = function(val) {
-        var width, dims;
-        dims = this.getDimensions();
-        width = dims.x;
-        var availableGraphWidth = width - xPadding;
-        var pixelsPerUnit = availableGraphWidth / this.getMax('X');
-        return xPadding + (pixelsPerUnit * data.values[val].X);
+    Graph.prototype.getPixel = function(val, axis) {
+        var rtn;
+        if (axis === 'x') {
+            rtn = this.origin.x + (this.pixelsPerUnit.x * val);
+        }
+        if (axis === 'y') {
+            rtn = this.origin.y - (this.pixelsPerUnit.y * val);
+        }
+        return rtn;
     };
  
-    Graph.prototype.getYPixel = function(val) {
-        var height, dims;
-        dims = this.getDimensions();
-        height = dims.y;
-        var availableGraphHeight = height - yPadding;
-        var pixelsPerUnit = availableGraphHeight / this.getMax('Y');
-        return height - yPadding - (pixelsPerUnit * data.values[val].Y);
-    };
 
     Graph.prototype.drawAxis = function() {
-        var width, height, dims, ctx = this.context;
-        dims = this.getDimensions();
-        width = dims.x;
-        height = dims.y;
+        var ctx = this.context;
+
         ctx.beginPath();
-        ctx.moveTo(xPadding, 0);
-        ctx.lineTo(xPadding, height - yPadding);
-        ctx.lineTo(width, height - yPadding);
-        console.log(width);
-        console.log(height - yPadding);
+        ctx.moveTo(this.origin.x, 0);
+        ctx.lineTo(this.origin.x, this.origin.y);
+        ctx.lineTo(this.origin.x + this.graphSize.x, this.origin.y);
         ctx.stroke();
 
-        // axis labels
-        for(var i = 0; i < data.values.length; i++) {
-            // TODO: stop these values crashing into each other
-            // Offset 20px from x or y axis
-            ctx.fillText(data.values[i].X, this.getXPixel(i), height - yPadding + 20);
-            ctx.fillText(data.values[i].Y, xPadding - 20, this.getYPixel(i));
-        }
-
-        // y axis labels
+        // y axis labels - one every X pixels
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
-         
-        for(var j = 0; j < data.values.length; j++) {
-            ctx.fillText(j, xPadding - 10, this.getYPixel(j));
+
+        var spacing = {};
+        var labelSpacing = 30;   // in pixels
+        spacing.y = Math.round(labelSpacing / this.pixelsPerUnit.y);
+        spacing.x = Math.round(labelSpacing / this.pixelsPerUnit.x);
+
+        for(var i = 0; i < this.max.y; i += spacing.y) {
+            ctx.fillText(i, this.origin.x, this.getPixel(i, 'y'));
+        }
+
+        ctx.textAlign = 'center';
+        for(var j = 0; j < this.max.x; j += spacing.x) {
+            ctx.fillText(j, this.getPixel(j, 'x'), (this.graphSize.y + 10));
         }
     };
 
@@ -137,10 +140,10 @@ module.exports = (function() {
         var ctx = this.context;
         ctx.strokeStyle = '#f00';
         ctx.beginPath();
-        ctx.moveTo(this.getXPixel(0), this.getYPixel(0));
+        ctx.moveTo(this.getPixel(data.values[0].x, 'x'), this.getPixel(data.values[0].y),'y');
          
         for(var i = 0; i < data.values.length; i++) {
-            ctx.lineTo(this.getXPixel(i), this.getYPixel(i));
+            ctx.lineTo(this.getPixel(data.values[i].x, 'x'), this.getPixel(data.values[i].y, 'y'));
         }
         ctx.stroke();
 
@@ -149,7 +152,7 @@ module.exports = (function() {
  
         for(var j = 0; j < data.values.length; j++) {
             ctx.beginPath();
-            ctx.arc(this.getXPixel(j), this.getYPixel(j), 4, 0, Math.PI * 2, true);
+            ctx.arc(this.getPixel('x', data.values[j].x), this.getPixel('y', data.values[j].y), 4, 0, Math.PI * 2, true);
             ctx.fill();
         }
     };
@@ -170,8 +173,14 @@ PRICER.applicationController = (function() {
     'use strict';
 
 	function EquityOption(params, resultsElement) {
-		this.call = null;
+		// Specific prices at values when calculated
+        this.call = null;
 		this.put = null;
+
+        // Range of values for plotting graph
+        this.callValues = {};
+        this.putValues = {};
+
 		this.el = resultsElement;
 		this.daysToExpiry = params.daysToExpiry;
 		this.spot = params.spot;
@@ -186,7 +195,7 @@ PRICER.applicationController = (function() {
 		this.el.html(template);
     };
 
-    EquityOption.prototype.calculate = function() {
+    EquityOption.prototype.calculate = function(variable, low, high, resolution) {
 		var params, optionValues;
 		params = {
 			daysToExpiry: this.daysToExpiry,
@@ -195,10 +204,29 @@ PRICER.applicationController = (function() {
 			riskFreeRate: this.riskFreeRate,
 			volatility: this.volatility
 		};
+        var actualSpot = this.spot, callValues = {values: []}, putValues = {};
 		// Calculate
-		optionValues = calc(params);
-		this.call = optionValues.call;
-		this.put = optionValues.put;
+        if (variable === 'spot') {
+            for (var i = low; i < high; i += resolution) {
+                params.spot = i;
+                optionValues = calc(params);
+
+                callValues.values.push({x: i, y: optionValues.call * 10});
+                putValues[i] = optionValues.put;
+            }
+        }
+        console.log(callValues);
+        this.spot = actualSpot;
+        this.call = callValues[actualSpot];
+        this.put = putValues[actualSpot];
+
+        var data = callValues;
+        var graphEl = $('#graph');
+        var graph = new lineGraph.Graph(data, graphEl);
+        graph.drawAxis();
+        graph.drawLine();
+
+
     };
 
     function calculate() {
@@ -209,7 +237,13 @@ PRICER.applicationController = (function() {
 
 		var optionValueElement = $('#optionsValue');
 		var myOption = new EquityOption(userForm.values, optionValueElement);
-		myOption.calculate();
+        // This takes about a 1ms
+        var low, high, resolution;
+        low = myOption.spot - 50;
+        high = myOption.spot + 50;
+        resolution = 1;
+		myOption.calculate('spot', low, high, resolution);
+        // I think it would be preferable to use events to call this rather than calling directly
 		myOption.render();
     }
 
@@ -237,17 +271,6 @@ PRICER.applicationController = (function() {
 			calculate();
 		});
 
-        var data = {values: [
-            {X: 100, Y: 120},
-            {X: 110, Y: 130},
-            {X: 120, Y: 150},
-            {X: 170, Y: 170},
-        ]};
-        var graphEl = $('#graph');
-        var graph = new lineGraph.Graph(data, graphEl);
-        graph.drawAxis();
-        graph.drawLine();
-        console.log(graph.context);
     }
 
     return {
@@ -2543,5 +2566,5 @@ exports.normalcdf = function(X){   //HASTINGS.  MAX ERROR = .000001
 
 }(window.jQuery);
 })()
-},{}]},{},[1,2,3,4,5])
+},{}]},{},[2,3,4,5,1])
 ;
