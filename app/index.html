@@ -17,17 +17,28 @@
     </head>
     <body>
         <div class="container">
+            <h1 class="center">Black-Scholes Option Pricer</h1>
             <div class="row-fluid">
-                <div class="span12">
-                    <h1>Black-Scholes Option Pricer</h1>
-                    <div class="option-form-container center">
-                
+                <div class="span6">
+                    <div class="left-container">                
+                        <div id="options-value-container" class="center">
+                            <div><h2>Option value:</h2></div>
+                            <div id='options-value'></div>
+                        </div>
+                        <div class="option-form-container center">
+                        </div>
                     </div>
-
-                    <div class="graph-container">
-                    </div>
-
                 </div>
+                <div class="span6">
+                    <div class="graph-container">
+                        <canvas id="graph-value" width="400" height="400">   
+                        </canvas> 
+                        <canvas id="graph-delta" width="400" height="400">   
+                        </canvas> 
+                    </div>
+                </div>
+
+                
             </div>
 
 

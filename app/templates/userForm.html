@@ -1,28 +1,48 @@
-<form id='user-form'>
+<form class="form-horizontal" id='user-form'>
   <fieldset>
     <div class="user-form-input-group">
-      <div class="form-group">
-        <label for="daysToExpiry">Days to Expiry</label>
-        <input type="number" class="form-control" id="daysToExpiry" placeholder="Days" value="365">
+      <div class="control-group">
+        <label class="control-label" for="daysToExpiry">Days to Expiry</label>
+        <input type="number" step="any" class="input-mini" id="daysToExpiry" placeholder="Days" value="365">
       </div>
-      <div class="form-group">
-        <label for="strike">Strike Price</label>
-        <input type="number" class="form-control" id="strike" placeholder="Strike" value="150">
+      <div class="control-group">
+        <label class="control-label" for="strike">Strike Price</label>
+        <input type="number" step="any" class="input-mini" id="strike" placeholder="Strike" value="150">
       </div>
-      <div class="form-group">
-        <label for="spot">Underlying Price</label>
-        <input type="number" class="form-control" id="spot" placeholder="Underlying" value="100">
+      <div class="control-group">
+        <label class="control-label" for="spot">Underlying Price</label>
+        <input type="number" step="any" class="input-mini" id="spot" placeholder="Underlying" value="100">
       </div>
-      <div class="form-group">
-        <label for="riskFreeRate">Risk free rate</label>
-        <input type="number" class="form-control" id="riskFreeRate" placeholder="Risk free" value="0.05">
+      <div class="control-group">
+        <label class="control-label" for="riskFreeRate">Risk free rate (%)</label>
+        <input type="number" step="any" class="input-mini" id="riskFreeRate" placeholder="Risk free" value="0.05">
       </div>
-      <div class="form-group">
-        <label for="volatility">Volatility</label>
-        <input type="number" class="form-control" id="volatility" placeholder="Volatility" value="0.5">
+      <div class="control-group">
+        <label class="control-label" for="volatility">Volatility</label>
+        <input type="number" step="any" class="input-mini" id="volatility" placeholder="Volatility" value="0.5">
       </div>
     </div>
-    <div id="js-form-submit" type="submit" class="user-form-submit-btn">Calculate</button>
+
+    <div class="row">
+      <div class="btn-group">
+        <div id="js-form-calc-call" class="btn btn-large btn-inverse">Call</div>
+        <div id="js-form-calc-put" class="btn btn-large btn-inverse">Put</div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="btn-group">
+        <div data-currency="gbp" class="js-form-currency btn btn-inverse">GBP</div>
+        <div data-currency="eur" class="js-form-currency btn btn-inverse">EUR</div>
+        <div data-currency="usd" class="js-form-currency btn btn-inverse">USD</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="btn-group">
+        <div id="js-form-get-riskfreerate" class="btn btn-inverse">Get risk free rate</div>
+      </div>
+    </div>
+
+    
   </fieldset>
 </form>
-<div id="optionsValue"></div>

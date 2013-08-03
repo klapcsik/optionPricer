@@ -9,7 +9,7 @@ module.exports = (function() {
 		yearsToExpiry = params.daysToExpiry / 365;
 		spot = params.spot;
 		strike = params.strike;  // could deal with absolute value or % of at the money forward
-		riskFreeRate = params.riskFreeRate;  // annualised, compound rate
+		riskFreeRate = params.riskFreeRate / 100;  // annualised, compound rate, input as %
 		volatility = params.volatility;
 
 		// need to modify for divs and repo
@@ -70,13 +70,15 @@ module.exports = (function() {
 // Slight modifications to fit to a more modular OO pattern, and also in some case refactored to 
 // make slightly more readable (in my opinion)
 
+// TODO: Deltas can be between -1 & 1, graph currently doesn't show negative
+
 module.exports = (function() {
     'use strict';
 
     var data;
 
     // slightly more generic 
-    function Graph(graphData, el) {
+    function Graph(graphData, el, opt) {
         var ctx;
 
         data = graphData;
@@ -84,8 +86,8 @@ module.exports = (function() {
         this.context = el[0].getContext('2d');
 
         this.padding = {};
-        this.padding.x = 30;
-        this.padding.y = 30;
+        this.padding.x = 40;
+        this.padding.y = 40;
 
         ctx = this.context;
         this.canvasSize = {};
@@ -93,8 +95,8 @@ module.exports = (function() {
         this.canvasSize.y = ctx.canvas.clientHeight;
 
         this.graphSize = {};
-        this.graphSize.x = this.canvasSize.x - this.padding.x;
-        this.graphSize.y = this.canvasSize.y - this.padding.y;
+        this.graphSize.x = this.canvasSize.x - 2 * this.padding.x;
+        this.graphSize.y = this.canvasSize.y - 2 * this.padding.y;
 
         this.max = {};
         this.max.x = this.getMax('x');
@@ -110,9 +112,14 @@ module.exports = (function() {
 
         // Default drawing properties
         ctx.lineWidth = 2;
-        ctx.strokeStyle = '#333';
-        ctx.font = 'italic 8pt sans-serif';
+        ctx.strokeStyle = '#fff';
+        ctx.fillStyle = '#fff';
+        ctx.font = '8pt sans-serif';
         ctx.textAlign = 'center';
+
+        // Optional parameters object
+        this.opt = opt;
+
     }
 
     // specify setter for data so we can keep in sync
@@ -137,7 +144,7 @@ module.exports = (function() {
         }
 
         // round to nearest ten
-        max += 10 - max % 10;
+        max += 1 - max % 1;
         return max;
     };
 
@@ -172,16 +179,24 @@ module.exports = (function() {
 
         var spacing = {};
         var labelSpacing = 30;   // in pixels
-        spacing.y = Math.round(labelSpacing / this.pixelsPerUnit.y);
-        spacing.x = Math.round(labelSpacing / this.pixelsPerUnit.x);
+        spacing.y = labelSpacing / this.pixelsPerUnit.y;
+        spacing.x = labelSpacing / this.pixelsPerUnit.x;
 
         for(var i = 0; i < this.max.y; i += spacing.y) {
-            ctx.fillText(i, this.origin.x, this.getPixel(i, 'y'));
+            ctx.fillText(i.toPrecision(3), this.origin.x, this.getPixel(i, 'y'));
         }
 
         ctx.textAlign = 'center';
         for(var j = 0; j < this.max.x; j += spacing.x) {
-            ctx.fillText(j, this.getPixel(j, 'x'), (this.graphSize.y + 10));
+            ctx.fillText(j.toPrecision(3), this.getPixel(j, 'x'), (this.graphSize.y + 10));
+        }
+
+        // Add title
+        if (this.opt) {
+            if (this.opt.title) {
+                ctx.font = '13pt sans-serif';
+                ctx.fillText(this.opt.title, this.canvasSize.x / 2, 10);
+            }
         }
     };
 
@@ -223,6 +238,7 @@ var  lineGraph = require('./lineGraph');
 
 PRICER.applicationController = (function() {
     'use strict';
+    var currency;
 
 	function EquityOption(params, resultsElement) {
 		// Specific prices at values when calculated
@@ -241,13 +257,13 @@ PRICER.applicationController = (function() {
 		this.volatility = params.volatility;
     }
 
-    EquityOption.prototype.render = function() {
+    EquityOption.prototype.render = function(type) {
 		// TODO template
-		var template = '<div>Call = ' + this.call + '</div><div> Put = ' + this.put + '</div>';
+		var template = '<div class="value center">' + this[type].toPrecision(3) + '</div>';
 		this.el.html(template);
     };
 
-    EquityOption.prototype.calculate = function(variable, low, high, resolution) {
+    EquityOption.prototype.calculate = function(type, variable, low, high, resolution) {
         console.time('Calc range of options and draw graph');
 
 		var params, optionValue, greeks;
@@ -258,53 +274,59 @@ PRICER.applicationController = (function() {
 			riskFreeRate: this.riskFreeRate,
 			volatility: this.volatility
 		};
-        var actualSpot = this.spot, callValues = {values: []}, deltas ={values: []};
+        var callValues = {values: []}, deltas ={values: []};
 		// Calculate
+        var copiedParams = {};
+        for(var prop in params) {
+            if(params.hasOwnProperty(prop)) {
+                copiedParams[prop] = params[prop];
+            }
+        }
         if (variable === 'spot') {
             for (var i = low; i < high; i += resolution) {
-                params.spot = i;
-                optionValue = calc.calculateValues(params, 'call');
+                copiedParams.spot = i;
+                optionValue = calc.calculateValues(copiedParams, type);
 
                 callValues.values.push({x: i, y: optionValue});
-                debugger;
-                greeks = calc.calculateValues(params, 'call', ['delta']);
+                greeks = calc.calculateValues(copiedParams, type, ['delta']);
                 deltas.values.push({x:i, y:greeks.delta});
-
             }
         }
 
-        this.spot = actualSpot;
-        params.spot = this.spot;
-        this.call = calc.calculateValues(params, 'call');
+        this[type] = calc.calculateValues(params, type);
         console.log(deltas);
 
-        var data = deltas;
-        var graphEl = $('#graph');
-        var graph = new lineGraph.Graph(data, graphEl);
-        graph.clearCanvas();
-        graph.drawAxis();
-        graph.drawLine();
+        
+        var valueGraph = new lineGraph.Graph(callValues, $('#graph-value'), {title: 'Value'});
+        valueGraph.clearCanvas();
+        valueGraph.drawAxis();
+        valueGraph.drawLine();
+
+        var deltaGraph = new lineGraph.Graph(deltas, $('#graph-delta'), {title: 'Delta'});
+        deltaGraph.clearCanvas();
+        deltaGraph.drawAxis();
+        deltaGraph.drawLine();
 
         console.timeEnd('Calc range of options and draw graph');
 
     };
 
-    function calculate() {
+    function calculate(type) {
 		var userForm = new OptionInputs({
 			values: ['daysToExpiry', 'spot', 'strike', 'riskFreeRate', 'volatility']
 		});
 		userForm.getValues();
 
-		var optionValueElement = $('#optionsValue');
+		var optionValueElement = $('#options-value');
 		var myOption = new EquityOption(userForm.values, optionValueElement);
         // This takes about a 1ms
         var low, high, resolution;
         low = myOption.spot - 50;
         high = myOption.spot + 150;
         resolution = 1;
-		myOption.calculate('spot', low, high, resolution);
+		myOption.calculate(type, 'spot', low, high, resolution);
         // I think it would be preferable to use events to call this rather than calling directly
-		myOption.render();
+		myOption.render(type);
     }
 
     function OptionInputs(params)  {
@@ -325,11 +347,34 @@ PRICER.applicationController = (function() {
 
     function start() {
 		$('.option-form-container').html(appTemplates.userForm.render());
-        $('.graph-container').html(appTemplates.lineGraph.render());
+        // $('.graph-container').html(appTemplates.lineGraph.render());
         // add click handlers
-		$('#js-form-submit').on('click', function() {
-			calculate();
-		});
+        $('#js-form-calc-call').on('click', function() {
+            calculate('call');
+        });
+        $('#js-form-calc-put').on('click', function() {
+            calculate('put');
+        });
+        $('#js-form-get-riskfreerate').on('click', function() {
+            var daysToExpiry = $('#daysToExpiry').val();
+            if (navigator && navigator.onLine === false) {
+                console.log('Not available offline');
+            } else {
+                var url = 'api/riskfreerate/' + currency + '/' + daysToExpiry;
+                $.ajax( url )
+                    .done(function(data) {
+                        $('#riskFreeRate').val(data.rate);
+                    })
+                    .fail(function() { console.log('Risk free rate request failed'); });
+            }
+        });
+        $('.js-form-currency').on('click', function() {
+            currency = this.dataset.currency;
+            // remove active class from all and apply to appropriate one
+            $('.js-form-currency').removeClass('active');
+            $(this).toggleClass('active');
+
+        });
 
     }
 

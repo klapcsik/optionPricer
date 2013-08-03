@@ -2,13 +2,15 @@
 // Slight modifications to fit to a more modular OO pattern, and also in some case refactored to 
 // make slightly more readable (in my opinion)
 
+// TODO: Deltas can be between -1 & 1, graph currently doesn't show negative
+
 module.exports = (function() {
     'use strict';
 
     var data;
 
     // slightly more generic 
-    function Graph(graphData, el) {
+    function Graph(graphData, el, opt) {
         var ctx;
 
         data = graphData;
@@ -16,8 +18,8 @@ module.exports = (function() {
         this.context = el[0].getContext('2d');
 
         this.padding = {};
-        this.padding.x = 30;
-        this.padding.y = 30;
+        this.padding.x = 40;
+        this.padding.y = 40;
 
         ctx = this.context;
         this.canvasSize = {};
@@ -25,8 +27,8 @@ module.exports = (function() {
         this.canvasSize.y = ctx.canvas.clientHeight;
 
         this.graphSize = {};
-        this.graphSize.x = this.canvasSize.x - this.padding.x;
-        this.graphSize.y = this.canvasSize.y - this.padding.y;
+        this.graphSize.x = this.canvasSize.x - 2 * this.padding.x;
+        this.graphSize.y = this.canvasSize.y - 2 * this.padding.y;
 
         this.max = {};
         this.max.x = this.getMax('x');
@@ -42,9 +44,14 @@ module.exports = (function() {
 
         // Default drawing properties
         ctx.lineWidth = 2;
-        ctx.strokeStyle = '#333';
-        ctx.font = 'italic 8pt sans-serif';
+        ctx.strokeStyle = '#fff';
+        ctx.fillStyle = '#fff';
+        ctx.font = '8pt sans-serif';
         ctx.textAlign = 'center';
+
+        // Optional parameters object
+        this.opt = opt;
+
     }
 
     // specify setter for data so we can keep in sync
@@ -69,7 +76,7 @@ module.exports = (function() {
         }
 
         // round to nearest ten
-        max += 10 - max % 10;
+        max += 1 - max % 1;
         return max;
     };
 
@@ -104,16 +111,24 @@ module.exports = (function() {
 
         var spacing = {};
         var labelSpacing = 30;   // in pixels
-        spacing.y = Math.round(labelSpacing / this.pixelsPerUnit.y);
-        spacing.x = Math.round(labelSpacing / this.pixelsPerUnit.x);
+        spacing.y = labelSpacing / this.pixelsPerUnit.y;
+        spacing.x = labelSpacing / this.pixelsPerUnit.x;
 
         for(var i = 0; i < this.max.y; i += spacing.y) {
-            ctx.fillText(i, this.origin.x, this.getPixel(i, 'y'));
+            ctx.fillText(i.toPrecision(3), this.origin.x, this.getPixel(i, 'y'));
         }
 
         ctx.textAlign = 'center';
         for(var j = 0; j < this.max.x; j += spacing.x) {
-            ctx.fillText(j, this.getPixel(j, 'x'), (this.graphSize.y + 10));
+            ctx.fillText(j.toPrecision(3), this.getPixel(j, 'x'), (this.graphSize.y + 10));
+        }
+
+        // Add title
+        if (this.opt) {
+            if (this.opt.title) {
+                ctx.font = '13pt sans-serif';
+                ctx.fillText(this.opt.title, this.canvasSize.x / 2, 10);
+            }
         }
     };
 

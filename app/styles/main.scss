@@ -37,6 +37,7 @@ body {
   padding-top: 90px;
   padding-left: 0px;
   padding-right: 0px;
+  background-color: #0B1218;
    @media screen and (max-width: 979px) { 
     padding-top: 0px;
    }
@@ -54,6 +55,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   line-height: 1;
+  color: white;
 }
 
 h2 {
@@ -70,13 +72,18 @@ p {
   line-height: 1.7em;
 }
 
+.left-container {
+    @media screen and (min-width: 640px) { 
+    padding-top: 40px;
+    padding-bottom: 40px;
+   }
+}
 
 .option-form-container {
   padding-top: 10px;
   padding-bottom: 10px;
 
   color: #8D9092;
-  background-color: #0B1218;
 
   font-size: 1.1em;
   line-height: 1.7em;
@@ -88,11 +95,30 @@ p {
       margin-bottom: 30px;
       text-align: center;
     }
-  @media screen and (min-width: 640px) { 
-    padding-top: 40px;
-    padding-bottom: 40px;
-   }
 }
+
+.graph-container {
+  padding-top: 40px;
+}
+
+#options-value-container {
+  width: 150px;
+  height: 100px;
+  color: #8D9092;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #1A1B1B;
+  border-style: solid;
+  border-color: #393736;
+  border-width: 5px;
+  h2 {
+    font-size: 1.2em;
+  }
+  .value {
+    font-size: 3em;;
+  }
+}
+
 
 #user-form {
     input {

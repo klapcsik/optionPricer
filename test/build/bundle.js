@@ -9,7 +9,7 @@ module.exports = (function() {
 		yearsToExpiry = params.daysToExpiry / 365;
 		spot = params.spot;
 		strike = params.strike;  // could deal with absolute value or % of at the money forward
-		riskFreeRate = params.riskFreeRate;  // annualised, compound rate
+		riskFreeRate = params.riskFreeRate / 100;  // annualised, compound rate, input as %
 		volatility = params.volatility;
 
 		// need to modify for divs and repo
