@@ -1,5 +1,8 @@
 /* globals PRICER, $, appTemplates */
 
+
+// Could query Yahoo APIs for stock data select * from yahoo.finance.quotes where symbol in ("YHOO","AAPL","GOOG","MSFT")
+
 var  calc = require('./calc');
 var  lineGraph = require('./lineGraph');
 
@@ -30,7 +33,9 @@ PRICER.applicationController = (function() {
     };
 
     EquityOption.prototype.calculate = function(variable, low, high, resolution) {
-		var params, optionValues;
+        console.time('Calc range of options and draw graph');
+
+		var params, optionValue, greeks;
 		params = {
 			daysToExpiry: this.daysToExpiry,
 			spot: this.spot,
@@ -38,28 +43,34 @@ PRICER.applicationController = (function() {
 			riskFreeRate: this.riskFreeRate,
 			volatility: this.volatility
 		};
-        var actualSpot = this.spot, callValues = {values: []}, putValues = {};
+        var actualSpot = this.spot, callValues = {values: []}, deltas ={values: []};
 		// Calculate
         if (variable === 'spot') {
             for (var i = low; i < high; i += resolution) {
                 params.spot = i;
-                optionValues = calc(params);
+                optionValue = calc.calculateValues(params, 'call');
 
-                callValues.values.push({x: i, y: optionValues.call * 10});
-                putValues[i] = optionValues.put;
+                callValues.values.push({x: i, y: optionValue});
+                debugger;
+                greeks = calc.calculateValues(params, 'call', ['delta']);
+                deltas.values.push({x:i, y:greeks.delta});
+
             }
         }
-        console.log(callValues);
-        this.spot = actualSpot;
-        this.call = callValues[actualSpot];
-        this.put = putValues[actualSpot];
 
-        var data = callValues;
+        this.spot = actualSpot;
+        params.spot = this.spot;
+        this.call = calc.calculateValues(params, 'call');
+        console.log(deltas);
+
+        var data = deltas;
         var graphEl = $('#graph');
         var graph = new lineGraph.Graph(data, graphEl);
+        graph.clearCanvas();
         graph.drawAxis();
         graph.drawLine();
 
+        console.timeEnd('Calc range of options and draw graph');
 
     };
 
@@ -74,7 +85,7 @@ PRICER.applicationController = (function() {
         // This takes about a 1ms
         var low, high, resolution;
         low = myOption.spot - 50;
-        high = myOption.spot + 50;
+        high = myOption.spot + 150;
         resolution = 1;
 		myOption.calculate('spot', low, high, resolution);
         // I think it would be preferable to use events to call this rather than calling directly

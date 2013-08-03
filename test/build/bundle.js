@@ -1,25 +1,70 @@
 ;(function(e,t,n){function i(n,s){if(!t[n]){if(!e[n]){var o=typeof require=="function"&&require;if(!s&&o)return o(n,!0);if(r)return r(n,!0);throw new Error("Cannot find module '"+n+"'")}var u=t[n]={exports:{}};e[n][0].call(u.exports,function(t){var r=e[n][1][t];return i(r?r:t)},u,u.exports)}return t[n].exports}var r=typeof require=="function"&&require;for(var s=0;s<n.length;s++)i(n[s]);return i})({1:[function(require,module,exports){
 var  normal = require('./normal');
 
-module.exports = function(params) {
+module.exports = (function() {
 	'use strict';
 
-	var yearsToExpiry, spot, strike, riskFreeRate, volatility, d1, d2, callValue, putValue;
-	yearsToExpiry = params.daysToExpiry / 365;
-	spot = params.spot;
-	strike = params.strike;  // could deal with absolute value or % of at the money forward
-	riskFreeRate = params.riskFreeRate;  // annualised, compound rate
-	volatility = params.volatility;
+	function blackScholes(params, type) {
+		var yearsToExpiry, spot, strike, riskFreeRate, volatility, d1, d2, rtnValue;
+		yearsToExpiry = params.daysToExpiry / 365;
+		spot = params.spot;
+		strike = params.strike;  // could deal with absolute value or % of at the money forward
+		riskFreeRate = params.riskFreeRate;  // annualised, compound rate
+		volatility = params.volatility;
 
-	// need to modify for divs and repo
-	d1 = (Math.log(spot/strike) + (riskFreeRate + volatility * volatility / 2)*(yearsToExpiry))/(volatility*Math.sqrt(yearsToExpiry));
-	d2 = (Math.log(spot/strike) + (riskFreeRate - volatility * volatility / 2)*(yearsToExpiry))/(volatility*Math.sqrt(yearsToExpiry));
+		// need to modify for divs and repo
+		d1 = (Math.log(spot/strike) + (riskFreeRate + volatility * volatility / 2)*(yearsToExpiry))/(volatility*Math.sqrt(yearsToExpiry));
+		d2 = (Math.log(spot/strike) + (riskFreeRate - volatility * volatility / 2)*(yearsToExpiry))/(volatility*Math.sqrt(yearsToExpiry));
 
-	callValue = normal.normalcdf(d1)*spot - normal.normalcdf(d2)*strike*Math.pow(Math.E, -1 * riskFreeRate * yearsToExpiry);
-	// from put call parity
-	putValue = normal.normalcdf(-1*d2)*strike*Math.pow(Math.E, -1*riskFreeRate*yearsToExpiry) - normal.normalcdf(-1*d1)*spot;
-	return {call: callValue, put: putValue};
-};
+		if (type === 'call') {
+			rtnValue = normal.normalcdf(d1)*spot - normal.normalcdf(d2)*strike*Math.pow(Math.E, -1 * riskFreeRate * yearsToExpiry);
+
+		}
+		if (type === 'put') {
+			rtnValue = normal.normalcdf(-1*d2)*strike*Math.pow(Math.E, -1*riskFreeRate*yearsToExpiry) - normal.normalcdf(-1*d1)*spot;
+		}
+
+		return rtnValue;
+	}
+
+	function calculateValues(params, type, greeks) {
+		// expect greeks to be an array of option greeks to calc
+		var rtnValue = {};
+
+		if (!greeks) {
+			return blackScholes(params, type);
+		}
+
+		if (greeks.indexOf('delta') !== -1) {
+			var deltaX = 1;
+			var deltaY, a, b;
+
+			// Use loop to clone object
+			var copiedParams = {};
+			for(var prop in params) {
+			    if(params.hasOwnProperty(prop)) {
+			        copiedParams[prop] = params[prop];
+		        }
+			}
+
+			copiedParams.spot = copiedParams.spot - deltaX/2;
+			a = blackScholes(copiedParams, type);
+			// need to add entire deltaX as just took off ha
+			copiedParams.spot = copiedParams.spot + deltaX;
+			b = blackScholes(copiedParams, type);
+			deltaY = b - a;
+			rtnValue.delta = deltaY / deltaX;
+
+		}
+
+		return rtnValue;
+	}
+
+	return {
+		calculateValues: calculateValues
+	};
+
+}());
 },{"./normal":2}],2:[function(require,module,exports){
 // Thanks to http://www.math.ucla.edu/~tom/distributions/normal.html for this code
 

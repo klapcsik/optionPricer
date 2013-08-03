@@ -73,6 +73,10 @@ module.exports = (function() {
         return max;
     };
 
+    Graph.prototype.clearCanvas = function() {
+        this.context.clearRect ( 0 , 0 , this.canvasSize.x , this.canvasSize.y );
+    };
+
     Graph.prototype.getPixel = function(val, axis) {
         var rtn;
         if (axis === 'x') {
