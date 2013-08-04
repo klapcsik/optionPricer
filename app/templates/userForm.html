@@ -1,48 +1,56 @@
-<form class="form-horizontal" id='user-form'>
-  <fieldset>
-    <div class="user-form-input-group">
-      <div class="control-group">
-        <label class="control-label" for="daysToExpiry">Days to Expiry</label>
-        <input type="number" step="any" class="input-mini" id="daysToExpiry" placeholder="Days" value="365">
-      </div>
-      <div class="control-group">
-        <label class="control-label" for="strike">Strike Price</label>
-        <input type="number" step="any" class="input-mini" id="strike" placeholder="Strike" value="150">
-      </div>
-      <div class="control-group">
-        <label class="control-label" for="spot">Underlying Price</label>
-        <input type="number" step="any" class="input-mini" id="spot" placeholder="Underlying" value="100">
-      </div>
-      <div class="control-group">
-        <label class="control-label" for="riskFreeRate">Risk free rate (%)</label>
-        <input type="number" step="any" class="input-mini" id="riskFreeRate" placeholder="Risk free" value="0.05">
-      </div>
-      <div class="control-group">
-        <label class="control-label" for="volatility">Volatility</label>
-        <input type="number" step="any" class="input-mini" id="volatility" placeholder="Volatility" value="0.5">
-      </div>
-    </div>
+<div id="options-value-container" class="center">
+  <div><h2>Option value:</h2></div>
+  <div id='options-value'>
 
-    <div class="row">
-      <div class="btn-group">
-        <div id="js-form-calc-call" class="btn btn-large btn-inverse">Call</div>
-        <div id="js-form-calc-put" class="btn btn-large btn-inverse">Put</div>
-      </div>
-    </div>
-    <div class="row">
-      <div class="btn-group">
-        <div data-currency="gbp" class="js-form-currency btn btn-inverse">GBP</div>
-        <div data-currency="eur" class="js-form-currency btn btn-inverse">EUR</div>
-        <div data-currency="usd" class="js-form-currency btn btn-inverse">USD</div>
-      </div>
-    </div>
+  </div>
+</div>
 
-    <div class="row">
-      <div class="btn-group">
-        <div id="js-form-get-riskfreerate" class="btn btn-inverse">Get risk free rate</div>
-      </div>
-    </div>
+<div class="option-form-container center">
 
-    
-  </fieldset>
-</form>
+  <form class="form-horizontal" id='user-form'>
+    <fieldset>
+      <div class="user-form-input-group">
+        <div class="control-group">
+          <label class="control-label" for="daysToExpiry">Days to Expiry</label>
+          <input type="number" step="1" class="input-mini" id="daysToExpiry" placeholder="Days" value="365">
+        </div>
+        <div class="control-group">
+          <!-- TODO: make minimum date today -->
+          <label class="control-label" for="daysToExpiry">Expiry date</label>
+          <input type="date" step="1" class="input-midi" id="expiryDate" placeholder="Date" value="2014-08-04" min="2013-08-04">
+        </div>
+        <div class="control-group">
+          <label id="js-field-strike" class="control-label" for="strike">Strike Price (<span class="js-currency-symbol"></span>)</label>
+          <input type="number" step="any" class="input-mini" id="strike" placeholder="Strike" value="150">
+          <div class="btn-group">
+          <div data-currency="gbp" class="js-form-currency btn btn-inverse">GBP</div>
+          <div data-currency="usd" class="js-form-currency btn btn-inverse">USD</div>
+        </div>
+        </div>
+        <div class="control-group">
+          <label id="js-field-underlying" class="control-label" for="spot">Underlying Price (<span class="js-currency-symbol"></span>)</label>
+          <input type="number" step="any" class="input-mini" id="spot" placeholder="Underlying" value="100">
+        </div>
+        <div class="control-group">
+          <label class="control-label" for="riskFreeRate">Risk free rate (%)</label>
+          <input type="number" step="0.01" class="input-mini" id="riskFreeRate" placeholder="Risk free" value="5">
+          <div id="js-form-get-riskfreerate" class="btn btn-inverse">Get risk free rate</div>
+        </div>
+        <div class="control-group">
+          <label class="control-label" for="volatility">Volatility (%)</label>
+          <input type="number" step="0.5" class="input-mini" id="volatility" placeholder="Volatility" value="50">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="btn-group">
+          <div id="js-form-calc-call" class="btn btn-large btn-inverse">Call</div>
+          <div id="js-form-calc-put" class="btn btn-large btn-inverse">Put</div>
+        </div>
+      </div>
+
+      
+    </fieldset>
+  </form>
+
+</div>

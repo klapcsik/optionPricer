@@ -9,7 +9,7 @@ module.exports = (function() {
 		spot = params.spot;
 		strike = params.strike;  // could deal with absolute value or % of at the money forward
 		riskFreeRate = params.riskFreeRate / 100;  // annualised, compound rate, input as %
-		volatility = params.volatility;
+		volatility = params.volatility / 100;
 
 		// need to modify for divs and repo
 		d1 = (Math.log(spot/strike) + (riskFreeRate + volatility * volatility / 2)*(yearsToExpiry))/(volatility*Math.sqrt(yearsToExpiry));

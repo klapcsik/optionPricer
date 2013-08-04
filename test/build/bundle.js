@@ -10,7 +10,7 @@ module.exports = (function() {
 		spot = params.spot;
 		strike = params.strike;  // could deal with absolute value or % of at the money forward
 		riskFreeRate = params.riskFreeRate / 100;  // annualised, compound rate, input as %
-		volatility = params.volatility;
+		volatility = params.volatility / 100;
 
 		// need to modify for divs and repo
 		d1 = (Math.log(spot/strike) + (riskFreeRate + volatility * volatility / 2)*(yearsToExpiry))/(volatility*Math.sqrt(yearsToExpiry));
@@ -88,23 +88,22 @@ exports.normalcdf = function(X){   //HASTINGS.  MAX ERROR = .000001
 (function () {
 	var calc = require('../../app/scripts/calc');
     describe('Black-Scholes calculation with preset values', function () {
-			var optionValues;
+			var params;
 			before( function() {
-				var params = {
+				params = {
 					daysToExpiry: 365,
 					spot: 100,
 					strike: 150,
-					riskFreeRate: 0.05,
-					volatility: 0.5
+					riskFreeRate: 5,
+					volatility: 50
 				};
-				optionValues = calc(params);
 			});
             it('should calculate call price correctly', function () {
-				var callValue = Math.round(optionValues.call);
+                var callValue = Math.round(calc.calculateValues(params, 'call'));
 				expect(callValue).to.equal(8);
             });
             it('should calculate put price correctly', function () {
-				var putValue = Math.round(optionValues.put);
+				var putValue = Math.round(calc.calculateValues(params, 'put'));
 				expect(putValue).to.equal(51);
             });
 		});

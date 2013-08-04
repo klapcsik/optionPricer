@@ -12,34 +12,194 @@
         <meta name="viewport" content="width=device-width">
         <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
         <script src="components/jquery/jquery.js"></script>
-        
+
+        <!-- loading animation from http://cssload.net/ -->
+        <style>
+            body {
+              font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+              font-size: 14px;
+              line-height: 20px;
+              color: #333333;
+              padding-top: 250px;
+              padding-left: 0px;
+              padding-right: 0px;
+              background-color: #0B1218;
+               @media screen and (max-width: 979px) { 
+                padding-top: 0px;
+               }
+            }
+
+            .bubblingG {
+                text-align: center;
+                width:80px;
+                height:50px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .bubblingG span {
+                display: inline-block;
+                vertical-align: middle;
+                width: 10px;
+                height: 10px;
+                margin: 25px auto;
+                background: #000000;
+                -moz-border-radius: 50px;
+                -moz-animation: bubblingG 1.3s infinite alternate;
+                -webkit-border-radius: 50px;
+                -webkit-animation: bubblingG 1.3s infinite alternate;
+                -ms-border-radius: 50px;
+                -ms-animation: bubblingG 1.3s infinite alternate;
+                -o-border-radius: 50px;
+                -o-animation: bubblingG 1.3s infinite alternate;
+                border-radius: 50px;
+                animation: bubblingG 1.3s infinite alternate;
+            }
+
+            #bubblingG_1 {
+                -moz-animation-delay: 0s;
+                -webkit-animation-delay: 0s;
+                -ms-animation-delay: 0s;
+                -o-animation-delay: 0s;
+                animation-delay: 0s;
+            }
+
+            #bubblingG_2 {
+                -moz-animation-delay: 0.39s;
+                -webkit-animation-delay: 0.39s;
+                -ms-animation-delay: 0.39s;
+                -o-animation-delay: 0.39s;
+                animation-delay: 0.39s;
+            }
+
+            #bubblingG_3 {
+                -moz-animation-delay: 0.78s;
+                -webkit-animation-delay: 0.78s;
+                -ms-animation-delay: 0.78s;
+                -o-animation-delay: 0.78s;
+                animation-delay: 0.78s;
+            }
+
+            @-moz-keyframes bubblingG {
+                0% {
+                width: 10px;
+                height: 10px;
+                background-color:#000000;
+                -moz-transform: translateY(0);
+                }
+
+                100% {
+                width: 24px;
+                height: 24px;
+                background-color:#FFFFFF;
+                -moz-transform: translateY(-21px);
+                }
+            }
+
+            @-webkit-keyframes bubblingG {
+                0% {
+                width: 10px;
+                height: 10px;
+                background-color:#000000;
+                -webkit-transform: translateY(0);
+                }
+
+                100% {
+                width: 24px;
+                height: 24px;
+                background-color:#FFFFFF;
+                -webkit-transform: translateY(-21px);
+                }
+            }
+
+            @-ms-keyframes bubblingG {
+                0% {
+                width: 10px;
+                height: 10px;
+                background-color:#000000;
+                -ms-transform: translateY(0);
+                }
+
+                100% {
+                width: 24px;
+                height: 24px;
+                background-color:#FFFFFF;
+                -ms-transform: translateY(-21px);
+                }
+            }
+
+            @-o-keyframes bubblingG {
+                0% {
+                width: 10px;
+                height: 10px;
+                background-color:#000000;
+                -o-transform: translateY(0);
+                }
+
+                100% {
+                width: 24px;
+                height: 24px;
+                background-color:#FFFFFF;
+                -o-transform: translateY(-21px);
+                }
+            }
+
+            @keyframes bubblingG {
+                0% {
+                width: 10px;
+                height: 10px;
+                background-color:#000000;
+                transform: translateY(0);
+                }
+
+                100% {
+                width: 24px;
+                height: 24px;
+                background-color:#FFFFFF;
+                transform: translateY(-21px);
+                }
+            }
+
+        </style>
+
 
     </head>
     <body>
         <div class="container">
-            <h1 class="center">Black-Scholes Option Pricer</h1>
+            <div class="loading-animation">
+                
+                <div class="bubblingG">
+                <div>Loading...</div>
+                <span id="bubblingG_1">
+                </span>
+                <span id="bubblingG_2">
+                </span>
+                <span id="bubblingG_3">
+                </span>
+                </div> 
+            </div>
+            
+            <div class="row-fluid">
+                <header class="header-container">
+
+                </header>
+            </div>
             <div class="row-fluid">
                 <div class="span6">
                     <div class="left-container">                
-                        <div id="options-value-container" class="center">
-                            <div><h2>Option value:</h2></div>
-                            <div id='options-value'></div>
-                        </div>
-                        <div class="option-form-container center">
-                        </div>
+  
                     </div>
-                </div>
+                </div> <!-- end span6 -->
+
                 <div class="span6">
                     <div class="graph-container">
-                        <canvas id="graph-value" width="400" height="400">   
+                        <canvas id="graph-value" width="350" height="400">   
                         </canvas> 
-                        <canvas id="graph-delta" width="400" height="400">   
+                        <canvas id="graph-delta" width="350" height="400">   
                         </canvas> 
                     </div>
-                </div>
-
-                
-            </div>
+                </div> <!-- end span6 -->
+            </div> <!-- end row -->
 
 
         </div>
@@ -54,9 +214,13 @@
             function startWithResources(resources) {
                 try {
                     eval(resources.js);
-                    // Add CSS
-                    $("head").append("<style>" + resources.css + "</style>");
-                    PRICER.applicationController.start();
+                    //remove loading animation
+                    setTimeout(function() {
+                        // Add CSS
+                        $('.loading-animation').html('');
+                        $("head").append("<style>" + resources.css + "</style>");
+                        PRICER.applicationController.start();
+                    }, 1000);
                 } catch (e) {
                     console.log('error evaling javascript' + e);
                 }

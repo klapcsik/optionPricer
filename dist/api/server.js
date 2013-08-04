@@ -3,8 +3,8 @@
 var applicationRoot = __dirname,
     express = require( 'express' ), //Web framework
     path = require( 'path' ), //Utilities for dealing with file paths
-    fs = require('fs');
-
+    fs = require('fs'),
+    http = require('http');
 //Create server
 var app = express();
 
@@ -60,6 +60,43 @@ app.configure( function() {
     // Routes
     app.get( '/api', function( request, response ) {
         response.send('get /api');
+    });
+
+    app.get( '/api/riskfreerate/:curr/:daysInFuture', function( request, response ) {
+        // http://data.treasury.gov/feed.svc/DailyTreasuryYieldCurveRateData?$filter=month(NEW_DATE)%20eq%208%20and%20year(NEW_DATE)%20eq%202013
+        // GBP from http://markets.ft.com/research/Markets/Bonds
+        var daysInFuture = parseInt(request.params.daysInFuture, 10);
+        var currency = request.params.curr;
+        var rates = {
+            usd: {
+                0: 0,
+                30: 0.02,
+                91: 0.04,
+                182: 0.08,
+                365: 0.13,
+                730: 0.35
+            },
+            gbp: {
+                0: 0,
+                30: 0.29,
+                91: 0.36,
+                182: 0.38,
+                365: 0.35,
+                730: 0.34
+            }
+        };
+
+        // interpolate
+        var prev = 0;
+        for(var days in rates[currency]) {
+            if(rates[currency].hasOwnProperty(days)) {
+                if (daysInFuture <= days && daysInFuture >= prev ) {
+                    var rate = rates[currency][prev] + ((rates[currency][days]-rates[currency][prev])/(days - prev))*(daysInFuture-prev);
+                    response.send({rate: rate, date: '2013-08-02'});
+                }
+                prev = days;
+            }
+        }
     });
 
     //Get a list of all photos

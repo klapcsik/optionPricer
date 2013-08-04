@@ -10,7 +10,7 @@ module.exports = (function() {
 		spot = params.spot;
 		strike = params.strike;  // could deal with absolute value or % of at the money forward
 		riskFreeRate = params.riskFreeRate / 100;  // annualised, compound rate, input as %
-		volatility = params.volatility;
+		volatility = params.volatility / 100;
 
 		// need to modify for divs and repo
 		d1 = (Math.log(spot/strike) + (riskFreeRate + volatility * volatility / 2)*(yearsToExpiry))/(volatility*Math.sqrt(yearsToExpiry));
@@ -238,7 +238,7 @@ var  lineGraph = require('./lineGraph');
 
 PRICER.applicationController = (function() {
     'use strict';
-    var currency;
+    var currency = 'gbp';  // default to gbp
 
 	function EquityOption(params, resultsElement) {
 		// Specific prices at values when calculated
@@ -346,7 +346,9 @@ PRICER.applicationController = (function() {
 
 
     function start() {
-		$('.option-form-container').html(appTemplates.userForm.render());
+        $('.header-container').html(appTemplates.header.render());
+		$('.left-container').html(appTemplates.userForm.render());
+        updateCurrency(currency);
         // $('.graph-container').html(appTemplates.lineGraph.render());
         // add click handlers
         $('#js-form-calc-call').on('click', function() {
@@ -373,9 +375,54 @@ PRICER.applicationController = (function() {
             // remove active class from all and apply to appropriate one
             $('.js-form-currency').removeClass('active');
             $(this).toggleClass('active');
-
+            updateCurrency(currency);
         });
 
+        $('#daysToExpiry').bind('input', function() {
+            var today, expiry, expiryMonth, expiryDay, expiryDate;
+            today = new Date();
+            expiry = new Date();
+            expiry.setDate(today.getDate() + parseInt($('#daysToExpiry').val(), 10));
+            expiryMonth = pad(expiry.getMonth()+1, 2);
+            expiryDay = pad(expiry.getDate(), 2);
+            expiryDate = expiry.getFullYear() + '-' + expiryMonth + '-' + expiryDay;
+            $('#expiryDate').val(expiryDate);
+        });
+        $('#expiryDate').bind('input', function() {
+            var daysToExpiry;
+            var formExpiryDate = $('#expiryDate').val().split(/\s*\-\s*/g);
+            var expiryDate = new Date(formExpiryDate[0], formExpiryDate[1]-1, formExpiryDate[2]);
+            var today = new Date();
+            var todayRounded = today.getTime() - (today.getHours())*(60*60*1000)-(today.getMinutes()*(60*1000))-(today.getSeconds()*1000);
+            daysToExpiry = (expiryDate - todayRounded) / (1000*60*60*24);
+            $('#daysToExpiry').val(Math.round(daysToExpiry));
+            $('#expiryDate').blur();
+        });
+
+    }
+
+    // Thanks to Hans Pufal for this: http://www.electrictoolbox.com/pad-number-javascript-hans-pufal/
+    function pad (n, len, padding) {
+        var sign = '', s = n;
+
+        if (typeof n === 'number') {
+            sign = n < 0 ? '-' : '';
+            s = Math.abs (n).toString ();
+        }
+
+        if ((len -= s.length) > 0) {
+            s = new Array(len + 1).join (padding || '0') + s;
+        }
+
+        return sign + s;
+    }
+
+    function updateCurrency(currency) {
+        if (currency === 'gbp') {
+            $('.js-currency-symbol').html('£');
+        } else if (currency === 'usd') {
+            $('.js-currency-symbol').html('$');
+        }
     }
 
     return {
